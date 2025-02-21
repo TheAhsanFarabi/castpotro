@@ -7,15 +7,25 @@
   <!-- Tailwind CSS via CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script>
+    function toggleMenu() {
+      document.getElementById("mobile-menu").classList.toggle("hidden");
+    }
+  </script>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
   <!-- Navbar -->
   <nav class="w-full bg-white shadow p-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-     
-        <img src="logo.png" alt="Castpotro Logo" class="w-32 inline-block">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+      <img src="logo.png" alt="Castpotro Logo" class="w-32">
       
+      <!-- Mobile Menu Button -->
+      <button class="md:hidden text-gray-600 focus:outline-none" onclick="toggleMenu()">
+        <i class="fas fa-bars text-2xl"></i>
+      </button>
+
+      <!-- Desktop Menu -->
       <div class="hidden md:flex space-x-8">
         <a href="index.html" class="text-gray-600 hover:text-gray-900">Home</a>
         <a href="internship.html" class="text-gray-600 hover:text-gray-900">Internship</a>
@@ -24,21 +34,28 @@
         <a href="about.html" class="text-gray-600 hover:text-gray-900">About Us</a>
       </div>
     </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+      <a href="index.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Home</a>
+      <a href="internship.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Internship</a>
+      <a href="events.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Events</a>
+      <a href="podcasts.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Podcasts</a>
+      <a href="about.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">About Us</a>
+    </div>
   </nav>
 
   <!-- Hero Section -->
   <section class="py-12 px-4 bg-white">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center">
       <div class="md:w-1/2 md:pr-8">
-        <h1 class="text-6xl sm:text-5xl font-bold mb-4">
-          <span class="hover:text-pink-500 hover:text-5xl transition duration-300 cursor-pointer">Learn</span>, 
-          <span class="hover:text-blue-500 hover:text-5xl transition duration-300 cursor-pointer">Connect</span>, 
-          <span class="hover:text-green-500 hover:text-5xl transition duration-300 cursor-pointer">Impact</span>
+        <h1 class="text-4xl sm:text-5xl font-bold mb-4">
+          <span class="hover:text-pink-500 transition duration-300 cursor-pointer">Learn</span>, 
+          <span class="hover:text-blue-500 transition duration-300 cursor-pointer">Connect</span>, 
+          <span class="hover:text-green-500 transition duration-300 cursor-pointer">Impact</span>
         </h1>
         <p class="text-gray-600 text-lg mb-6">
-          Castpotro is a global platform dedicated to connecting individuals through learning, mentorship, and innovation. 
-          Whether you're looking for an internship, expert-led workshops, cultural exchanges, or collaborative projects, 
-          we provide the resources and network to help you excel.
+          Castpotro is a global platform dedicated to connecting individuals through learning, mentorship, and innovation.
         </p>
         <a href="https://discord.gg/jWTgCAEk" target="_blank" class="bg-pink-500 text-white font-semibold px-6 py-3 rounded-full hover:bg-pink-600 transition">
           <i class="fab fa-discord"></i> Join Us on Discord
@@ -48,61 +65,129 @@
         <img 
           src="https://media.istockphoto.com/id/1412778148/vector/online-meeting.jpg?s=612x612&w=0&k=20&c=bTK4nlDMQE-MBPzxVbzGt_FJYvkVVVmitVRW17zWXiI=" 
           alt="Young people celebrating" 
-          class="w-full"
+          class="w-full rounded-lg"
         >
       </div>
     </div>
   </section>
 
+<!-- Mid Section: Global Network of Youth -->
+<section class="bg-gradient-to-r from-pink-50 to-pink-100 py-12">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="text-center mb-8">
+      <!-- Typewriter Effect -->
+      <h2 class="text-6xl sm:text-4xl font-bold mb-2">
+        <span id="typewriter"></span><span class="blink">|</span>
+      </h2>
+
+      <!-- Fade-in Animation -->
+      <p 
+        class="text-gray-700 max-w-6xl mx-auto opacity-0 transform translate-y-4 transition-all duration-1000 ease-in-out"
+        id="fade-text"
+      >
+        Your future is all set with Castpotro! We’re an international 
+        network of bright minds, building skills, making friends, and leading 
+        with empathy. Built by youth, for youth—join us and explore a safe space 
+        for your unique learning journey.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Alpine.js for Typewriter Effect -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.3/cdn.min.js" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const messages = [
+      "Global Network of Youth",
+      "Empowering the Next Generation",
+      "Innovate, Connect, and Lead"
+    ];
+    
+    let messageIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+
+    function typeWriter() {
+      let displayText = document.getElementById("typewriter");
+
+      if (!deleting && charIndex < messages[messageIndex].length) {
+        displayText.innerHTML = messages[messageIndex].substring(0, charIndex + 1);
+        charIndex++;
+        setTimeout(typeWriter, 100);
+      } else if (deleting && charIndex > 0) {
+        displayText.innerHTML = messages[messageIndex].substring(0, charIndex - 1);
+        charIndex--;
+        setTimeout(typeWriter, 50);
+      } else {
+        deleting = !deleting;
+        if (!deleting) {
+          messageIndex = (messageIndex + 1) % messages.length; // Switch to next message
+        }
+        setTimeout(typeWriter, 1000);
+      }
+    }
+
+    typeWriter();
+
+    // Fade-in Animation for Paragraph
+    setTimeout(() => {
+      const textElement = document.getElementById("fade-text");
+      textElement.classList.remove("opacity-0", "translate-y-4");
+    }, 1500);
+  });
+</script>
+
+<style>
+  /* Blinking Cursor */
+  .blink {
+    animation: blink-animation 1s step-end infinite;
+  }
+
+  @keyframes blink-animation {
+    50% { opacity: 0; }
+  }
+</style>
+
+
   <!-- Features Section -->
   <section class="py-12">
     <div class="max-w-7xl mx-auto px-4">
-      <h3 class="text-center text-2xl font-bold mb-6">
-        Why Choose Castpotro?
-      </h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
+      <h3 class="text-center text-2xl font-bold mb-6">Why Choose Castpotro?</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow text-center">
           <i class="fas fa-podcast text-pink-500 text-4xl mb-4"></i>
           <h4 class="text-xl font-bold mb-2">Podcasts</h4>
           <p class="text-gray-600">Listen to inspiring discussions from industry leaders and young innovators.</p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
+        <div class="bg-white p-6 rounded-lg shadow text-center">
           <i class="fas fa-globe-americas text-pink-500 text-4xl mb-4"></i>
           <h4 class="text-xl font-bold mb-2">Cultural Exchange</h4>
           <p class="text-gray-600">Engage in global dialogues, explore new cultures, and expand your worldview.</p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
+        <div class="bg-white p-6 rounded-lg shadow text-center">
           <i class="fas fa-users text-pink-500 text-4xl mb-4"></i>
           <h4 class="text-xl font-bold mb-2">Teamwork</h4>
           <p class="text-gray-600">Collaborate on impactful projects with like-minded individuals worldwide.</p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
+        <div class="bg-white p-6 rounded-lg shadow text-center">
           <i class="fas fa-laptop-code text-pink-500 text-4xl mb-4"></i>
           <h4 class="text-xl font-bold mb-2">Tech & Innovation</h4>
           <p class="text-gray-600">Develop your digital skills with cutting-edge resources and mentorship.</p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
+        <div class="bg-white p-6 rounded-lg shadow text-center">
           <i class="fas fa-graduation-cap text-pink-500 text-4xl mb-4"></i>
           <h4 class="text-xl font-bold mb-2">Education & Mentorship</h4>
           <p class="text-gray-600">Get guidance from experts and access to global learning programs.</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
-          <i class="fas fa-handshake text-pink-500 text-4xl mb-4"></i>
-          <h4 class="text-xl font-bold mb-2">Networking</h4>
-          <p class="text-gray-600">Connect with peers, professionals, and changemakers around the world.</p>
         </div>
       </div>
     </div>
   </section>
 
- 
-
   <!-- Footer -->
   <footer class="bg-white py-8 border-t">
     <div class="max-w-7xl mx-auto px-4 text-center">
-      <p class="text-gray-600">
-        &copy; 2025 Castpotro. All rights reserved.
-      </p>
+      <p class="text-gray-600">&copy; 2025 Castpotro. All rights reserved.</p>
     </div>
   </footer>
 

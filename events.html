@@ -7,15 +7,25 @@
   <!-- Tailwind CSS via CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script>
+    function toggleMenu() {
+      document.getElementById("mobile-menu").classList.toggle("hidden");
+    }
+  </script>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
   <!-- Navbar -->
   <nav class="w-full bg-white shadow p-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-     
-        <img src="logo.png" alt="Castpotro Logo" class="w-32 inline-block">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+      <img src="logo.png" alt="Castpotro Logo" class="w-32">
       
+      <!-- Mobile Menu Button -->
+      <button class="md:hidden text-gray-600 focus:outline-none" onclick="toggleMenu()">
+        <i class="fas fa-bars text-2xl"></i>
+      </button>
+
+      <!-- Desktop Menu -->
       <div class="hidden md:flex space-x-8">
         <a href="index.html" class="text-gray-600 hover:text-gray-900">Home</a>
         <a href="internship.html" class="text-gray-600 hover:text-gray-900">Internship</a>
@@ -24,56 +34,94 @@
         <a href="about.html" class="text-gray-600 hover:text-gray-900">About Us</a>
       </div>
     </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+      <a href="index.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Home</a>
+      <a href="internship.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Internship</a>
+      <a href="events.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Events</a>
+      <a href="podcasts.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Podcasts</a>
+      <a href="about.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">About Us</a>
+    </div>
   </nav>
 
   <!-- Events Section -->
   <section class="py-12 px-4 bg-white">
     <div class="max-w-7xl mx-auto text-center">
-      <h1 class="text-4xl font-bold mb-6">Upcoming Events</h1>
+      <h1 class="text-4xl font-bold mb-6">Our Events</h1>
       <p class="text-gray-600 text-lg mb-6 max-w-2xl mx-auto">
         Explore our latest events, competitions, and opportunities to engage with a global community.
       </p>
     </div>
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+      
       <!-- Event 1 -->
-      <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
-        <i class="fas fa-microphone text-pink-500 text-4xl mb-4"></i>
-        <h4 class="text-xl font-bold mb-2">Global Podcast Competition</h4>
-        <p class="text-gray-600">A platform for creative minds to share their stories and ideas globally.</p>
+      <div class="bg-gradient-to-r from-pink-400 to-pink-600 text-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition transform hover:scale-105 duration-300 ease-in-out">
+        <i class="fas fa-microphone text-white text-4xl mb-4 animate-bounce"></i>
+        <h4 class="text-xl font-bold mb-2">Global Podcast</h4>
+        <p>Share your creative ideas on a global stage.</p>
       </div>
+
       <!-- Event 2 -->
-      <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
-        <i class="fas fa-film text-pink-500 text-4xl mb-4"></i>
+      <div class="bg-gradient-to-r from-blue-400 to-blue-600 text-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition transform hover:scale-105 duration-300 ease-in-out">
+        <i class="fas fa-film text-white text-4xl mb-4 animate-bounce"></i>
         <h4 class="text-xl font-bold mb-2">Online Movie Watch Party</h4>
-        <p class="text-gray-600">Join us for an interactive virtual movie experience with discussions.</p>
+        <p>Enjoy interactive virtual movie experiences.</p>
       </div>
+
       <!-- Event 3 -->
-      <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
-        <i class="fas fa-graduation-cap text-pink-500 text-4xl mb-4"></i>
+      <div class="bg-gradient-to-r from-green-400 to-green-600 text-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition transform hover:scale-105 duration-300 ease-in-out">
+        <i class="fas fa-graduation-cap text-white text-4xl mb-4 animate-bounce"></i>
         <h4 class="text-xl font-bold mb-2">Expert-Led Workshops</h4>
-        <p class="text-gray-600">Learn from global experts in technology, leadership, and career development.</p>
+        <p>Learn from industry experts in tech & leadership.</p>
       </div>
+
       <!-- Event 4 -->
-      <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
-        <i class="fas fa-users text-pink-500 text-4xl mb-4"></i>
+      <div class="bg-gradient-to-r from-purple-400 to-purple-600 text-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition transform hover:scale-105 duration-300 ease-in-out">
+        <i class="fas fa-users text-white text-4xl mb-4 animate-bounce"></i>
         <h4 class="text-xl font-bold mb-2">Cultural Exchange Programs</h4>
-        <p class="text-gray-600">Connect with international peers to share and learn about different cultures.</p>
+        <p>Connect with global peers & share cultures.</p>
       </div>
+
       <!-- Event 5 -->
-      <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
-        <i class="fas fa-gamepad text-pink-500 text-4xl mb-4"></i>
-        <h4 class="text-xl font-bold mb-2">Multiplayer Knowledge Games</h4>
-        <p class="text-gray-600">Compete and collaborate in interactive online knowledge-building games.</p>
+      <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition transform hover:scale-105 duration-300 ease-in-out">
+        <i class="fas fa-gamepad text-white text-4xl mb-4 animate-bounce"></i>
+        <h4 class="text-xl font-bold mb-2">Multiplayer Games</h4>
+        <p>Test your skills in knowledge & IQ games.</p>
       </div>
+
       <!-- Event 6 -->
-      <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition text-center">
-        <i class="fas fa-lightbulb text-pink-500 text-4xl mb-4"></i>
+      <div class="bg-gradient-to-r from-red-400 to-red-600 text-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition transform hover:scale-105 duration-300 ease-in-out">
+        <i class="fas fa-lightbulb text-white text-4xl mb-4 animate-bounce"></i>
         <h4 class="text-xl font-bold mb-2">Creative Competitions</h4>
-        <p class="text-gray-600">Showcase your talents in writing, design, and problem-solving challenges.</p>
+        <p>Showcase talents in writing & design challenges and win gifts.</p>
       </div>
+
+      <!-- Event 7 -->
+      <div class="bg-gradient-to-r from-yellow-600 to-red-600 text-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition transform hover:scale-105 duration-300 ease-in-out">
+        <i class="fas fa-leaf text-white text-4xl mb-4 animate-bounce"></i>
+        <h4 class="text-xl font-bold mb-2">Community Clubs</h4>
+        <p>Discuss books, music, and storytelling.</p>
+      </div>
+
+      <!-- Event 8 -->
+      <div class="bg-gradient-to-r from-indigo-400 to-indigo-600 text-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition transform hover:scale-105 duration-300 ease-in-out">
+        <i class="fas fa-chalkboard-teacher text-white text-4xl mb-4 animate-bounce"></i>
+        <h4 class="text-xl font-bold mb-2">English Learning Sessions</h4>
+        <p>Improve your English with interactive sessions.</p>
+      </div>
+
+      <!-- Event 9 -->
+      <div class="bg-gradient-to-r from-gray-400 to-gray-600 text-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition transform hover:scale-105 duration-300 ease-in-out">
+        <i class="fas fa-briefcase text-white text-4xl mb-4 animate-bounce"></i>
+        <h4 class="text-xl font-bold mb-2">Interns Training Sessions</h4>
+        <p>Get hands-on career training and mentorship.</p>
+      </div>
+
     </div>
-  </section>
-  
+  </section> 
+
+
   <!-- Footer -->
   <footer class="bg-white py-8 border-t">
     <div class="max-w-7xl mx-auto px-4 text-center">

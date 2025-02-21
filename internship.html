@@ -6,15 +6,27 @@
   <title>Castpotro - Internships</title>
   <!-- Tailwind CSS via CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script>
+    function toggleMenu() {
+      document.getElementById("mobile-menu").classList.toggle("hidden");
+    }
+  </script>
 </head>
 <body class="bg-gray-50 text-gray-800">
-  
+
   <!-- Navbar -->
-   <nav class="w-full bg-white shadow p-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-     
-        <img src="logo.png" alt="Castpotro Logo" class="w-32 inline-block">
+  <nav class="w-full bg-white shadow p-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+      <img src="logo.png" alt="Castpotro Logo" class="w-32">
       
+      <!-- Mobile Menu Button -->
+      <button class="md:hidden text-gray-600 focus:outline-none" onclick="toggleMenu()">
+        <i class="fas fa-bars text-2xl"></i>
+      </button>
+
+      <!-- Desktop Menu -->
       <div class="hidden md:flex space-x-8">
         <a href="index.html" class="text-gray-600 hover:text-gray-900">Home</a>
         <a href="internship.html" class="text-gray-600 hover:text-gray-900">Internship</a>
@@ -22,6 +34,15 @@
         <a href="podcasts.html" class="text-gray-600 hover:text-gray-900">Podcasts</a>
         <a href="about.html" class="text-gray-600 hover:text-gray-900">About Us</a>
       </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+      <a href="index.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Home</a>
+      <a href="internship.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Internship</a>
+      <a href="events.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Events</a>
+      <a href="podcasts.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">Podcasts</a>
+      <a href="about.html" class="block px-4 py-2 text-gray-600 hover:text-gray-900">About Us</a>
     </div>
   </nav>
   <!-- Hero Section -->
