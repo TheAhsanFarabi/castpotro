@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  /* Base Next.js Theme */
+  --background: #ffffff;
+  --foreground: #334155; /* Adjusted to Slate-700 to match Castpotro text */
+
+  /* Castpotro Specific Colors */
+  --cp-blue: #649be1;       
+  --cp-blue-shade: rgb(1, 102, 153); 
+  --cp-accent: #de5491;     
+  --cp-accent-shade: #9c3563;
+  --cp-gray: #e5e5e5;
+  --cp-text: #334155;       /* Slate-700 */
+  --cp-success: #22c55e;
+  --cp-error: #ef4444;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Optional Dark Mode overrides if you decide to enable them later */
+    /* --background: #0a0a0a; */
+    /* --foreground: #ededed; */
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--cp-text);
+  /* Prioritize Geist if available, fallback to Nunito or sans */
+  font-family: var(--font-sans), 'Nunito', sans-serif;
+}
+
+/* --- Castpotro Component Layer --- 
+  These classes create the 3D "Juicy" effect for buttons and cards.
+*/
+
+/* 3D Button Base 
+   Note: We repeat these styles in specific classes below to avoid '@apply btn-base' errors.
+*/
+.btn-base {
+  @apply uppercase tracking-wider font-extrabold rounded-2xl border-2 border-b-4 transition-all flex items-center justify-center active:border-b-2 active:translate-y-[2px];
+}
+
+/* Primary Action (Sky Blue) */
+.btn-primary {
+  @apply uppercase tracking-wider font-extrabold rounded-2xl border-2 border-b-4 transition-all flex items-center justify-center active:border-b-2 active:translate-y-[2px] bg-[var(--cp-blue)] text-white border-[var(--cp-blue)] border-b-[var(--cp-blue-shade)] hover:bg-[#38bdf8] hover:border-[#38bdf8] hover:border-b-[#0284c7];
+}
+
+/* Secondary/Outline Action */
+.btn-outline {
+  @apply uppercase tracking-wider font-extrabold rounded-2xl border-2 border-b-4 transition-all flex items-center justify-center active:border-b-2 active:translate-y-[2px] bg-white text-[var(--cp-blue)] border-slate-200 border-b-slate-200 hover:bg-slate-50 hover:border-slate-300;
+}
+
+/* State Variants */
+.btn-danger {
+  @apply uppercase tracking-wider font-extrabold rounded-2xl border-2 border-b-4 transition-all flex items-center justify-center active:border-b-2 active:translate-y-[2px] bg-red-500 text-white border-red-500 border-b-red-600 hover:bg-red-400;
+}
+
+.btn-success {
+  @apply uppercase tracking-wider font-extrabold rounded-2xl border-2 border-b-4 transition-all flex items-center justify-center active:border-b-2 active:translate-y-[2px] bg-green-500 text-white border-green-500 border-b-green-600 hover:bg-green-400;
+}
+
+.btn-disabled {
+  @apply bg-slate-200 text-slate-400 border-slate-200 border-b-slate-200 pointer-events-none;
+}
+
+/* Inputs & Selection Cards */
+.input-field {
+  @apply w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-lg outline-none focus:border-[var(--cp-blue)] transition-colors text-slate-700 placeholder:text-slate-400 font-medium;
+}
+
+.card-select {
+  @apply bg-white border-2 border-slate-200 rounded-2xl border-b-4 cursor-pointer transition-all hover:bg-sky-50 active:border-b-2 active:translate-y-[2px];
+}
+
+.card-select.selected {
+  @apply bg-sky-100 border-sky-400 text-sky-600;
+}
