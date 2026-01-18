@@ -1,4 +1,4 @@
-# Castpotro V2
+# Castpotro V2.0
 
 **Castpotro** is a personalized, gamified learning platform dedicated to mastering soft skills. Designed as a "Duolingo for soft skills," it helps users improve communication, leadership, critical thinking, ethics, and teamwork through interactive lessons, daily challenges, and AI-driven mentorship.
 
