@@ -103,7 +103,6 @@ Key ideas:
 
 Castpotro runs events, communities, and learning challenges.
 It is NOT a language learning app.
-It does NOT guarantee jobs.
 It focuses on skill growth, proof of learning, and credibility.
 `;
 
@@ -115,7 +114,7 @@ export async function chatWithGemini(
     // Using 'gemini-1.5-flash' as it is the standard stable model for this SDK.
     // If you have access to newer previews, you can change this string.
     const model = genAI.getGenerativeModel({
-      model: "gemini-3-flash-preview", 
+      model: "gemini-1.5-flash", 
       systemInstruction: `
         You are the official AI assistant for the Castpotro website.
 
@@ -153,5 +152,24 @@ export async function chatWithGemini(
   } catch (error) {
     console.error("Gemini API Error:", error);
     return "I'm having trouble connecting to my brain right now. Please check my API key!";
+  }
+}
+
+// --- 5. GET USER PROFILE (New) ---
+export async function getUserProfile() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+
+  if (!userId) return null;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true }
+    });
+    return user;
+  } catch (error) {
+    console.error("Fetch profile error:", error);
+    return null;
   }
 }
