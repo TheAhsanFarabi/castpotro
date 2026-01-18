@@ -81,16 +81,13 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
+    <div className="flex w-full max-w-[1920px] mx-auto min-h-screen bg-slate-50">
       
-      {/* --- GRID LAYOUT (75/25) --- */}
-      <div className="w-full grid grid-cols-1 xl:grid-cols-4 gap-8 px-4 md:px-8 py-6">
-        
-        {/* === LEFT COLUMN: MAIN CONTENT (75%) === */}
-        <div className="xl:col-span-3 w-full min-w-0 flex flex-col">
+      {/* === CENTER CONTENT (Fluid) === */}
+      <div className="flex-1 overflow-y-auto scroll-smooth border-r border-slate-100 p-6 lg:p-10">
           
           {/* Sticky Header */}
-          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl p-4 mb-6 sticky top-4 z-30 shadow-sm flex items-center justify-between">
+          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl p-4 mb-6 sticky top-0 z-30 shadow-sm flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="bg-purple-100 p-2.5 rounded-xl text-purple-600 border border-purple-200 shadow-sm">
                     <Users size={28} />
@@ -108,11 +105,10 @@ export default function EventsPage() {
               </div>
           </div>
 
-          <main className="space-y-8 pb-24 lg:pb-0">
+          <main className="space-y-8 pb-24 lg:pb-0 max-w-5xl mx-auto">
             
-            {/* 1. Hero Banner (Featured Event) */}
+            {/* 1. Hero Banner */}
             <div className="w-full bg-slate-900 rounded-[32px] p-8 md:p-10 text-white shadow-xl shadow-slate-300 relative overflow-hidden group">
-                {/* Animated Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-600 opacity-90"></div>
                 <div className="absolute -right-20 -top-20 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                 
@@ -149,13 +145,12 @@ export default function EventsPage() {
                     </button>
                 </div>
 
-                {/* Decor Icon */}
                 <div className="absolute -right-6 -bottom-10 opacity-10 rotate-12 group-hover:rotate-[20deg] group-hover:scale-105 transition-transform duration-700 pointer-events-none">
                     <Trophy size={320} />
                 </div>
             </div>
 
-            {/* 2. Filter & Search Bar */}
+            {/* 2. Filter & Search */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                <h3 className="font-extrabold text-slate-700 text-xl">Upcoming Events</h3>
                <div className="w-full sm:w-auto flex items-center gap-3 bg-white px-4 py-2.5 rounded-xl border-2 border-slate-100 focus-within:border-purple-200 focus-within:ring-4 focus-within:ring-purple-50 transition-all shadow-sm">
@@ -164,7 +159,7 @@ export default function EventsPage() {
                </div>
             </div>
 
-            {/* 3. Event Cards Grid */}
+            {/* 3. Event Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {EVENTS.map((event) => (
                     <div key={event.id} className="group bg-white border-2 border-slate-100 rounded-[24px] p-6 hover:border-slate-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full relative overflow-hidden">
@@ -202,17 +197,16 @@ export default function EventsPage() {
                             {registered.includes(event.id) ? "You're Going!" : "Join Event"}
                         </button>
                         
-                        {/* Hover Gradient Background */}
                         <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 ${event.color}`}></div>
                     </div>
                 ))}
             </div>
 
           </main>
-        </div>
+      </div>
 
-        {/* === RIGHT COLUMN: WIDGETS (25%) === */}
-        <div className="hidden xl:flex xl:col-span-1 flex-col gap-6 sticky top-6 h-fit shrink-0">
+      {/* === RIGHT SIDEBAR (Fixed Width) === */}
+      <div className="hidden lg:flex flex-col w-[350px] 2xl:w-[400px] bg-slate-50/50 p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-100">
           
           {/* Widget 1: My Tickets */}
           <div className="bg-white border-2 border-slate-200 rounded-[24px] p-5 shadow-sm">
@@ -231,7 +225,6 @@ export default function EventsPage() {
                  </div>
              ) : (
                  <div className="space-y-3">
-                     {/* Check for special event ID 5 (Nitro Win) */}
                      {registered.includes(5) && (
                         <div className="relative overflow-hidden p-3 bg-slate-800 rounded-xl text-white border border-slate-700 group cursor-pointer hover:scale-105 transition-transform">
                             <div className="flex items-center gap-3 relative z-10">
@@ -247,7 +240,6 @@ export default function EventsPage() {
                         </div>
                      )}
 
-                     {/* Render Standard Events */}
                      {EVENTS.filter(e => registered.includes(e.id)).map(e => (
                          <div key={e.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border-2 border-slate-100 hover:border-purple-200 hover:shadow-md transition-all cursor-pointer">
                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-sm ${e.color}`}>
@@ -286,7 +278,7 @@ export default function EventsPage() {
              </div>
           </div>
 
-          {/* Widget 3: Castpotro Plus (Ad) */}
+          {/* Widget 3: Castpotro Plus */}
           <div className="bg-gradient-to-br from-[#0ea5e9] to-violet-600 rounded-[24px] p-6 text-white relative overflow-hidden group cursor-pointer shadow-lg shadow-sky-200 hover:shadow-2xl hover:shadow-sky-400/50 transition-all duration-500">
             <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-2">
@@ -305,12 +297,10 @@ export default function EventsPage() {
             </div>
           </div>
 
-        </div>
-
       </div>
 
       {/* --- MOBILE STICKY FOOTER --- */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-[0_-5px_30px_rgba(0,0,0,0.08)] z-50 xl:hidden">
+      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-[0_-5px_30px_rgba(0,0,0,0.08)] z-50 lg:hidden">
          <div className="flex items-center justify-between gap-4">
              <div className="flex items-center gap-3">
                  <div className="bg-purple-100 p-2 rounded-lg text-purple-600">

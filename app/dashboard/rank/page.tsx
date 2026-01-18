@@ -6,7 +6,7 @@ import {
   Target, Star, Trophy
 } from 'lucide-react';
 
-// --- Mock Data ---
+// --- Mock Data (Unchanged) ---
 const LEADERBOARD = [
   { rank: 1, name: "Sarah J.", xp: 2450, avatar: "👩‍🚀", trend: "up" },
   { rank: 2, name: "Mike T.", xp: 2300, avatar: "👨‍💻", trend: "down" },
@@ -34,7 +34,6 @@ const UserRow = ({ user, rank }: { user: any, rank: number }) => {
   let textStyle = "text-slate-500";
   let avatarBorder = "border-slate-200";
 
-  // Hook: Make Top 3 look Special
   if (rank === 1) {
     rankStyle = "bg-gradient-to-r from-yellow-50 to-white border-yellow-200 shadow-sm hover:border-yellow-300";
     textStyle = "text-yellow-600 font-black";
@@ -49,26 +48,19 @@ const UserRow = ({ user, rank }: { user: any, rank: number }) => {
     avatarBorder = "border-orange-400";
   }
 
-  // Hook: High Contrast for "Me"
   if (user.isMe) {
     rankStyle += " ring-2 ring-sky-400 bg-sky-50/50 z-10 relative";
   }
 
   return (
     <div className={`group flex items-center gap-4 md:gap-6 p-4 rounded-2xl border-b-[3px] transition-all hover:shadow-md hover:-translate-y-0.5 w-full ${rankStyle}`}>
-      
-      {/* Rank Number */}
       <div className={`w-10 text-center flex flex-col items-center justify-center shrink-0 ${textStyle}`}>
         <span className="text-xl md:text-2xl font-bold">{rank}</span>
       </div>
-
-      {/* Avatar */}
       <div className={`relative w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full bg-white flex items-center justify-center text-2xl md:text-3xl border-2 shadow-sm ${avatarBorder}`}>
         {user.avatar}
         {rank === 1 && <Crown size={20} className="absolute -top-3 text-yellow-500 fill-yellow-500 animate-bounce" />}
       </div>
-
-      {/* Name & Trend */}
       <div className="flex-1 min-w-0">
         <h3 className={`truncate text-base md:text-lg ${user.isMe ? "font-black text-sky-700" : "font-bold text-slate-700"}`}>
           {user.name} 
@@ -79,8 +71,6 @@ const UserRow = ({ user, rank }: { user: any, rank: number }) => {
           <span>{user.trend === 'same' ? 'Stable' : user.trend === 'up' ? 'Rising' : 'Falling'}</span>
         </div>
       </div>
-
-      {/* XP Score */}
       <div className="text-right shrink-0">
         <div className="font-black text-slate-700 flex items-center justify-end gap-1.5 text-lg md:text-xl">
           {user.xp} <span className="text-xs font-bold text-slate-400 uppercase self-center pt-1">XP</span>
@@ -94,17 +84,13 @@ export default function RankPage() {
   const [timeLeft] = useState("2d 14h");
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
+    <div className="flex w-full max-w-[1920px] mx-auto min-h-screen bg-slate-50">
       
-      {/* --- GRID LAYOUT (Full Width) --- */}
-      {/* 4 Columns Total: Left (3 cols = 75%) | Right (1 col = 25%) */}
-      <div className="w-full grid grid-cols-1 xl:grid-cols-4 gap-8 px-4 md:px-8 py-6">
-        
-        {/* === LEFT COLUMN: LEADERBOARD LIST (75%) === */}
-        <div className="xl:col-span-3 w-full min-w-0 flex flex-col">
+      {/* === MAIN CONTENT (CENTER) === */}
+      <div className="flex-1 overflow-y-auto scroll-smooth border-r border-slate-100 p-6 lg:p-10">
           
           {/* Sticky Header */}
-          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl p-4 mb-6 sticky top-4 z-30 shadow-sm flex items-center justify-between">
+          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl p-4 mb-6 sticky top-0 z-30 shadow-sm flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="bg-yellow-100 p-2.5 rounded-xl text-yellow-600 border border-yellow-200 shadow-sm">
                     <Trophy size={28} />
@@ -121,7 +107,7 @@ export default function RankPage() {
           </div>
 
           {/* List Content */}
-          <main className="space-y-3 pb-24 lg:pb-0">
+          <main className="space-y-3 pb-24 lg:pb-0 max-w-4xl mx-auto">
             {/* Context Text */}
             <div className="flex items-center gap-2 mb-4 px-2">
               <Sparkles size={18} className="text-green-500" />
@@ -153,11 +139,10 @@ export default function RankPage() {
               );
             })}
           </main>
-        </div>
+      </div>
 
-        {/* === RIGHT COLUMN: WIDGETS (25%) === */}
-        {/* Hidden on mobile, sticky on desktop */}
-        <div className="hidden xl:flex xl:col-span-1 flex-col gap-6 sticky top-6 h-fit shrink-0">
+      {/* === RIGHT SIDEBAR (Fixed Width) === */}
+      <div className="hidden lg:flex flex-col w-[350px] 2xl:w-[400px] bg-slate-50/50 p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-100">
           
           {/* Widget 1: My Performance */}
           <div className="bg-white rounded-2xl border-2 border-slate-100 p-5 shadow-sm">
@@ -196,7 +181,7 @@ export default function RankPage() {
              </div>
           </div>
 
-          {/* Widget 3: Castpotro Plus (Ad Hook) */}
+          {/* Widget 3: Castpotro Plus */}
           <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-[#0ea5e9] to-violet-600 text-white shadow-lg shadow-sky-200 group cursor-pointer">
              <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-2">
@@ -215,13 +200,10 @@ export default function RankPage() {
              </div>
           </div>
 
-        </div>
-
       </div>
 
-      {/* --- MOBILE STICKY FOOTER --- */}
-      {/* Ensures user sees their rank even when list is long on mobile */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-[0_-5px_30px_rgba(0,0,0,0.08)] z-50 xl:hidden">
+      {/* --- MOBILE FOOTER --- */}
+      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-[0_-5px_30px_rgba(0,0,0,0.08)] z-50 lg:hidden">
          <div className="flex items-center justify-between gap-4">
              <div className="flex items-center gap-3">
                 <div className="font-black text-slate-400 text-lg w-8 text-center">{LEADERBOARD.find(u => u.isMe)?.rank}</div>

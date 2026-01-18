@@ -8,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { SKILLS } from '@/lib/data';
 
-// --- Lesson Node Component ---
+// ... (LessonNode component remains unchanged) ...
 const LessonNode = ({ status, icon, offset }: { status: 'completed' | 'active' | 'locked', icon: any, offset: string }) => {
   const getStyles = () => {
     if (status === 'completed') return 'bg-amber-500 border-amber-600 text-white';
@@ -37,14 +37,12 @@ function DashboardContent() {
   const selectedCourse = SKILLS.find(s => s.id === courseId);
 
   return (
-    <div className="flex w-full h-full">
+    <div className="flex w-full max-w-[1920px] mx-auto">
       
-      {/* --- CENTER CONTENT --- */}
-      {/* FIX: Removed p-6 lg:p-10 from here to fix the gap above sticky header */}
-      <div className="flex-1 overflow-y-auto bg-white relative">
+      {/* --- CENTER CONTENT (Fluid Width) --- */}
+      <div className="flex-1 overflow-y-auto bg-white relative scroll-smooth border-r border-slate-100">
 
         {/* Top Header */}
-        {/* FIX: Added px-6 lg:px-10 here. Reduced mb-8 to mb-6. */}
         <div className="flex justify-between items-center sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 lg:px-10 py-4 mb-6">
           <div className="flex items-center gap-3">
             {selectedCourse ? (
@@ -77,101 +75,83 @@ function DashboardContent() {
         </div>
 
         {/* DYNAMIC CONTENT SWITCHING */}
-        {/* FIX: Added px-6 lg:px-10 here so content matches header alignment */}
         <div className="px-6 lg:px-10 pb-20">
             {selectedCourse ? (
-
-            // --- VIEW 1: COURSE DETAILS (UNITS TREE) ---
-            <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-300 max-w-3xl mx-auto pt-4">
-                {selectedCourse.units.map((unit, index) => (
-                <div key={index} className="w-full flex flex-col items-center">
-                    {/* Unit Card */}
-                    <div className={`w-full text-white rounded-3xl p-8 mb-8 flex justify-between items-center shadow-lg relative overflow-hidden ${index % 2 === 0 ? 'bg-[#0ea5e9] shadow-sky-100' : 'bg-[#8b5cf6] shadow-purple-100'}`}>
-                    <div className="relative z-10">
-                        <h3 className="font-extrabold text-3xl uppercase tracking-tight">{unit.title}</h3>
-                        <p className="opacity-90 font-medium text-lg mt-1">{unit.description}</p>
-                    </div>
-                    <button className="relative z-10 bg-white/20 hover:bg-white/30 transition px-6 py-3 rounded-xl font-bold text-sm uppercase backdrop-blur-md flex items-center gap-2 border border-white/20">
-                        <Briefcase size={18} /> Guide
-                    </button>
-                    {/* Background Pattern */}
-                    <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-10 translate-y-10">
-                        <Hexagon size={180} />
-                    </div>
-                    </div>
-
-                    {/* Levels / Nodes */}
-                    <div className="flex flex-col items-center gap-8 w-full relative mb-8">
-                    {unit.levels.map((level, i) => {
-                        const offset = i % 2 === 0 ? '0px' : (i % 4 === 1 ? '-60px' : '60px');
-                        return (
-                        <LessonNode
-                            key={level.id}
-                            status={level.status as any}
-                            icon={<level.icon size={32} />}
-                            offset={offset}
-                        />
-                        );
-                    })}
-                    </div>
-                </div>
-                ))}
-            </div>
-
-            ) : (
-
-            // --- VIEW 2: COURSE LIST (GRID) ---
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
-                {SKILLS.map((skill) => (
-                <Link key={skill.id} href={`/dashboard?course=${skill.id}`}>
-                    <div className="group border-2 border-slate-200 hover:border-sky-300 bg-white rounded-3xl p-6 cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden h-full flex flex-col justify-between min-h-[280px]">
-
-                    {/* Background Icon Decoration */}
-                    <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <skill.icon size={160} />
-                    </div>
-
-                    <div>
-                        <div className="flex items-start justify-between mb-6">
-                        <div className={`p-4 rounded-2xl text-white shadow-md ${['public-speaking', 'leadership'].includes(skill.id) ? 'bg-amber-500' :
-                            ['emotional-iq', 'negotiation'].includes(skill.id) ? 'bg-rose-500' :
-                            'bg-[#0ea5e9]'
-                            }`}>
-                            <skill.icon size={32} />
+                // --- VIEW 1: COURSE DETAILS ---
+                <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-300 max-w-2xl mx-auto pt-4">
+                    {selectedCourse.units.map((unit, index) => (
+                    <div key={index} className="w-full flex flex-col items-center">
+                        <div className={`w-full text-white rounded-3xl p-8 mb-8 flex justify-between items-center shadow-lg relative overflow-hidden ${index % 2 === 0 ? 'bg-[#0ea5e9] shadow-sky-100' : 'bg-[#8b5cf6] shadow-purple-100'}`}>
+                        <div className="relative z-10">
+                            <h3 className="font-extrabold text-3xl uppercase tracking-tight">{unit.title}</h3>
+                            <p className="opacity-90 font-medium text-lg mt-1">{unit.description}</p>
                         </div>
-                        <span className="text-slate-400 font-bold text-xs uppercase tracking-wider bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                            Module 1
-                        </span>
-                        </div>
-
-                        <h3 className="text-2xl font-black text-slate-700 mb-2 group-hover:text-[#0ea5e9] transition-colors">{skill.name}</h3>
-                        <p className="text-slate-500 font-medium mb-6 leading-relaxed">Master the art of {skill.name.toLowerCase()} through interactive scenarios.</p>
-                    </div>
-
-                    <div className="w-full pt-4 border-t border-slate-50">
-                        <div className="flex items-center gap-2 mb-3">
-                            <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-slate-300 w-[0%]"></div>
-                            </div>
-                            <span className="text-xs font-bold text-slate-300">0%</span>
-                        </div>
-                        <button className="w-full py-3.5 rounded-xl border-b-4 border-slate-200 bg-slate-100 text-slate-500 font-extrabold uppercase tracking-wider text-sm group-hover:bg-[#0ea5e9] group-hover:text-white group-hover:border-[#0284c7] transition-all flex items-center justify-center gap-2">
-                            Start Learning <Play size={16} fill="currentColor" />
+                        <button className="relative z-10 bg-white/20 hover:bg-white/30 transition px-6 py-3 rounded-xl font-bold text-sm uppercase backdrop-blur-md flex items-center gap-2 border border-white/20">
+                            <Briefcase size={18} /> Guide
                         </button>
+                        <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-10 translate-y-10">
+                            <Hexagon size={180} />
+                        </div>
+                        </div>
+                        <div className="flex flex-col items-center gap-8 w-full relative mb-8">
+                        {unit.levels.map((level, i) => {
+                            const offset = i % 2 === 0 ? '0px' : (i % 4 === 1 ? '-60px' : '60px');
+                            return (
+                            <LessonNode
+                                key={level.id}
+                                status={level.status as any}
+                                icon={<level.icon size={32} />}
+                                offset={offset}
+                            />
+                            );
+                        })}
+                        </div>
                     </div>
-                    </div>
-                </Link>
-                ))}
-            </div>
+                    ))}
+                </div>
+            ) : (
+                // --- VIEW 2: COURSE LIST ---
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
+                    {SKILLS.map((skill) => (
+                    <Link key={skill.id} href={`/dashboard?course=${skill.id}`}>
+                        <div className="group border-2 border-slate-200 hover:border-sky-300 bg-white rounded-3xl p-6 cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden h-full flex flex-col justify-between min-h-[280px]">
+                        <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <skill.icon size={160} />
+                        </div>
+                        <div>
+                            <div className="flex items-start justify-between mb-6">
+                            <div className={`p-4 rounded-2xl text-white shadow-md ${['public-speaking', 'leadership'].includes(skill.id) ? 'bg-amber-500' : ['emotional-iq', 'negotiation'].includes(skill.id) ? 'bg-rose-500' : 'bg-[#0ea5e9]'}`}>
+                                <skill.icon size={32} />
+                            </div>
+                            <span className="text-slate-400 font-bold text-xs uppercase tracking-wider bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                                Module 1
+                            </span>
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-700 mb-2 group-hover:text-[#0ea5e9] transition-colors">{skill.name}</h3>
+                            <p className="text-slate-500 font-medium mb-6 leading-relaxed">Master the art of {skill.name.toLowerCase()} through interactive scenarios.</p>
+                        </div>
+                        <div className="w-full pt-4 border-t border-slate-50">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-slate-300 w-[0%]"></div>
+                                </div>
+                                <span className="text-xs font-bold text-slate-300">0%</span>
+                            </div>
+                            <button className="w-full py-3.5 rounded-xl border-b-4 border-slate-200 bg-slate-100 text-slate-500 font-extrabold uppercase tracking-wider text-sm group-hover:bg-[#0ea5e9] group-hover:text-white group-hover:border-[#0284c7] transition-all flex items-center justify-center gap-2">
+                                Start Learning <Play size={16} fill="currentColor" />
+                            </button>
+                        </div>
+                        </div>
+                    </Link>
+                    ))}
+                </div>
             )}
         </div>
-
       </div>
 
-      {/* --- RIGHT SIDEBAR (Widgets & Ads) --- */}
-      <div className="hidden 2xl:flex flex-col w-[400px] border-l-2 border-slate-100 bg-slate-50/50 p-8 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-8 shrink-0">
-        
-        {/* Widget 1: Leaderboard Mini */}
+      {/* --- RIGHT SIDEBAR (Fixed Width to Match Left) --- */}
+      <div className="hidden lg:flex flex-col w-[350px] 2xl:w-[400px] bg-slate-50/50 p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-100">
+        {/* ... Widgets content same as before ... */}
         <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
             <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2">
                 <Trophy size={20} className="text-amber-500" /> Weekly Ranking
@@ -190,7 +170,6 @@ function DashboardContent() {
             </div>
         </div>
 
-        {/* Widget 2: Daily Quests */}
         <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
             <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-slate-700">Daily Quests</h3>
@@ -218,7 +197,6 @@ function DashboardContent() {
             </div>
         </div>
 
-        {/* Widget 3: Castpotro Plus (Ad) */}
         <div className="bg-gradient-to-br from-[#0ea5e9] to-violet-600 rounded-2xl p-6 text-white relative overflow-hidden group cursor-pointer shadow-lg shadow-sky-200">
             <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-2">
@@ -232,13 +210,11 @@ function DashboardContent() {
                     Try 7 Days Free
                 </button>
             </div>
-            {/* Background Decoration */}
             <div className="absolute -right-6 -top-6 opacity-20 rotate-12 group-hover:rotate-[20deg] transition-transform duration-700">
                 <Sparkles size={140} />
             </div>
         </div>
 
-        {/* Widget 4: Daily Insight */}
         <div className="bg-indigo-50 border-2 border-indigo-100 rounded-2xl p-5 flex gap-4 items-start">
              <Lightbulb className="text-indigo-500 shrink-0" size={24} />
              <div>
@@ -248,7 +224,6 @@ function DashboardContent() {
                 </p>
              </div>
         </div>
-
       </div>
 
     </div>
