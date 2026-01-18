@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { logoutAction } from '../actions'; 
 
-// Sidebar Item Component
 const NavItem = ({ icon, label, href }: { icon: any, label: string, href: string }) => {
   const pathname = usePathname();
   const isActive = href === '/dashboard' 
@@ -29,10 +28,11 @@ const NavItem = ({ icon, label, href }: { icon: any, label: string, href: string
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-white flex flex-col md:flex-row">
+    <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans text-slate-900">
       
-      {/* SIDEBAR NAVIGATION - WIDTH INCREASED TO MATCH RIGHT SIDEBAR (400px on XL) */}
-      <nav className="w-full md:w-20 xl:w-[350px] 2xl:w-[400px] md:h-screen bg-white border-r-2 border-slate-100 fixed md:static bottom-0 z-50 px-4 md:px-3 xl:px-6 py-2 md:py-8 flex md:flex-col justify-between md:justify-start gap-2 md:gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:shadow-none shrink-0 transition-all duration-300">
+      {/* SIDEBAR NAVIGATION - COMPACT SYMMETRY */}
+      {/* md:w-20 (Icons) | xl:w-[240px] (Compact Laptop) | 2xl:w-[300px] (Desktop) */}
+      <nav className="w-full md:w-20 xl:w-[240px] 2xl:w-[300px] md:h-screen bg-white border-r-2 border-slate-100 fixed md:static bottom-0 z-50 px-4 md:px-3 xl:px-4 py-2 md:py-8 flex md:flex-col justify-between md:justify-start gap-2 md:gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:shadow-none shrink-0 transition-all duration-300">
          <Link href="/" className="hidden md:flex items-center justify-center xl:justify-start gap-2 text-2xl font-extrabold text-[#0ea5e9] tracking-tighter mb-8 px-0 xl:px-4">
            <Zap fill="#0ea5e9" size={28} /> 
            <span className="hidden xl:block">castpotro</span>
@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex justify-center overflow-y-auto h-screen bg-white relative">
+      <main className="flex-1 flex justify-center overflow-y-auto h-screen bg-white relative min-w-0">
         {children}
       </main>
     </div>

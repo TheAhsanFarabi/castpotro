@@ -9,7 +9,10 @@ import {
 import { useState, Suspense, useEffect } from 'react';
 import { getUserProfile } from '../../actions';
 
-// --- Mock Data (unchanged) ---
+// ... (ProfileCustomizer and Data remain same) ...
+// (Pasting the critical ProfileContent update below with the new widths)
+
+// --- Mock Data ---
 const BADGES = [
   { id: 1, name: "Early Bird", icon: "🌅", color: "bg-orange-100 text-orange-600" },
   { id: 2, name: "Fast Learner", icon: "🚀", color: "bg-blue-100 text-blue-600" },
@@ -29,29 +32,10 @@ const CERTIFICATES = [
   { id: 2, title: "Emotional Intelligence 101", issuer: "Castpotro Academy", issueDate: "Dec 22, 2025", credentialId: "CP-EI-2025-1102", skills: "Empathy, Self-Awareness" }
 ];
 
-// --- Types ---
-type AvatarData = {
-  color: string;
-  shape: string;
-  icon: string;
-};
+type AvatarData = { color: string; shape: string; icon: string; };
+type BannerData = { type: 'gradient' | 'solid' | 'pattern'; style: React.CSSProperties; name: string; };
 
-type BannerData = {
-  type: 'gradient' | 'solid' | 'pattern';
-  style: React.CSSProperties; 
-  name: string;
-};
-
-// --- Profile Customizer Component ---
-function ProfileCustomizer({ 
-  isOpen, onClose, onSave, currentAvatar, currentBanner 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  onSave: (avatar: AvatarData, banner: BannerData) => void;
-  currentAvatar: AvatarData;
-  currentBanner: BannerData;
-}) {
+function ProfileCustomizer({ isOpen, onClose, onSave, currentAvatar, currentBanner }: { isOpen: boolean; onClose: () => void; onSave: (avatar: AvatarData, banner: BannerData) => void; currentAvatar: AvatarData; currentBanner: BannerData; }) {
   const [activeTab, setActiveTab] = useState<'avatar' | 'banner'>('avatar');
   const [localAvatar, setLocalAvatar] = useState<AvatarData>(currentAvatar);
   const [localBanner, setLocalBanner] = useState<BannerData>(currentBanner);
@@ -163,7 +147,7 @@ function ProfileContent() {
           email: userData.email,
           handle: userData.name 
             ? `@${userData.name.replace(/\s+/g, '').toLowerCase()}` 
-            : `@${userData.email.split('@')[0]}` // Fallback handle from email if name is empty
+            : `@${userData.email.split('@')[0]}`
         }));
       }
     }
@@ -221,9 +205,9 @@ function ProfileContent() {
   return (
     <div className="flex w-full h-full">
       <ProfileCustomizer isOpen={isCustomizerOpen} onClose={() => setIsCustomizerOpen(false)} onSave={(newAvatar, newBanner) => { setAvatar(newAvatar); setBanner(newBanner); }} currentAvatar={avatar} currentBanner={banner} />
-      <div className="flex-1 overflow-y-auto bg-white relative scroll-smooth">
+      
+      <div className="flex-1 overflow-y-auto bg-white relative scroll-smooth min-w-0">
         
-        {/* Sticky Header */}
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
            <div className="max-w-7xl mx-auto px-6 lg:px-10 py-4 flex justify-between items-center">
                 <div className="flex items-center gap-3">
@@ -250,10 +234,10 @@ function ProfileContent() {
                    
                    {/* Avatar */}
                    <div className="relative group/avatar cursor-pointer shrink-0" onClick={() => setIsCustomizerOpen(true)}>
-                      <div className={`w-36 h-36 ${avatar.color} ${avatar.shape} border-[6px] border-white shadow-xl flex items-center justify-center text-white text-5xl font-black transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/avatar:scale-105 group-hover/avatar:rotate-3`}>{avatar.icon}</div>
+                      <div className={`w-36 h-36 ${avatar.color} ${avatar.shape} border-[6px] border-white shadow-xl flex items-center justify-center text-white text-5xl font-black transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/scale-105 group-hover/rotate-3`}>{avatar.icon}</div>
                    </div>
                    
-                   {/* Profile Info - Fixed layout with White Glassmorphic Box */}
+                   {/* Profile Info */}
                    <div className="flex-1 text-center md:text-left space-y-2 w-full pt-6 md:pt-0 mb-2 relative z-20">
                       {isEditing ? (
                           <div className="space-y-3 max-w-md animate-in slide-in-from-left-4 duration-300 mx-auto md:mx-0">
@@ -261,13 +245,11 @@ function ProfileContent() {
                               <input type="text" value={profile.handle} onChange={(e) => setProfile({...profile, handle: e.target.value})} className="w-full text-slate-500 font-bold bg-white border-2 border-slate-200 rounded-xl px-4 py-2 focus:border-[#0ea5e9] focus:outline-none transition-all shadow-sm focus:shadow-md" />
                           </div>
                       ) : (
-                          // White Box Container for visibility
                           <div className="inline-block bg-white/95 backdrop-blur-sm px-6 py-3 rounded-2xl border border-slate-100 shadow-md animate-in fade-in duration-300 mt-4 md:mt-0">
                             <h1 className="text-3xl font-extrabold text-slate-800 leading-tight">{profile.name}</h1>
                             <p className="text-slate-400 font-bold text-lg">{profile.handle}</p>
                           </div>
                       )}
-                      
                       <div className="flex items-center justify-center md:justify-start gap-4 pt-2">
                          <p className="text-slate-500 font-medium flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 text-sm hover:scale-105 transition-transform cursor-default"><Calendar size={14} className="text-[#0ea5e9]" /> Joined January 2026</p>
                          <p className="text-slate-500 font-medium flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 text-sm hover:scale-105 transition-transform cursor-default"><MapPin size={14} className="text-rose-500" /> {profile.location}</p>
@@ -277,7 +259,7 @@ function ProfileContent() {
             </div>
 
             {/* 2. Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                <div className="border-2 border-slate-100 rounded-2xl p-5 flex flex-col items-center gap-2 bg-white shadow-sm hover:border-orange-200 hover:-translate-y-1 hover:shadow-orange-100/50 hover:shadow-lg transition-all duration-300 group cursor-default">
                   <div className="bg-orange-50 p-3 rounded-full group-hover:scale-110 transition-transform duration-300"><Flame size={24} className="text-orange-500" fill="currentColor" /></div>
                   <div className="text-center"><div className="text-2xl font-black text-slate-700">5</div><div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Day Streak</div></div>
@@ -335,7 +317,10 @@ function ProfileContent() {
             </div>
         </div>
       </div>
-      <div className="hidden 2xl:flex flex-col w-[400px] border-l-2 border-slate-100 bg-slate-50/50 p-8 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-8 shrink-0">
+      
+      {/* --- RIGHT SIDEBAR (Responsive) --- */}
+      {/* FIX: Width adjusted to xl:w-[240px] 2xl:w-[300px] */}
+      <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-slate-50/50 p-8 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-8 shrink-0 border-l-2 border-slate-100">
           <div className="bg-sky-50 border-2 border-sky-100 rounded-3xl p-6 text-center relative overflow-hidden group hover:shadow-xl hover:shadow-sky-100 transition-all duration-300">
              <div className="relative z-10"><div className="w-16 h-16 bg-white rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">🎁</div><h3 className="font-black text-[#0ea5e9] text-lg mb-2">Invite Friends</h3><p className="text-sky-800 text-sm font-medium mb-6 leading-relaxed">Get 1 week of Premium membership for every friend who joins using your link!</p><button className="w-full py-3 bg-[#0ea5e9] text-white rounded-xl font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-sky-200 hover:bg-sky-600 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2"><Share2 size={18} /> Copy Link</button></div>
              <div className="absolute -bottom-10 -right-10 opacity-10 rotate-12 text-[#0ea5e9] transition-transform duration-700 group-hover:rotate-45 group-hover:scale-110"><Gift size={150} /></div>
@@ -354,7 +339,6 @@ function ProfileContent() {
   );
 }
 
-// --- Main Page Component ---
 export default function ProfilePage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-[#0ea5e9] font-bold animate-pulse">Loading...</div>}>

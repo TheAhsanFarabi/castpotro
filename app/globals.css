@@ -23,9 +23,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* GLOBAL SCALE ADJUSTMENT 
+   Setting this to 80% scales down the entire UI significantly.
+   1rem becomes 12.8px (assuming browser default is 16px).
+*/
+html {
+  font-size: 80%;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Optional Dark Mode overrides if you decide to enable them later */
+    /* Optional Dark Mode overrides */
     /* --background: #0a0a0a; */
     /* --foreground: #ededed; */
   }
@@ -38,13 +46,9 @@ body {
   font-family: var(--font-sans), 'Nunito', sans-serif;
 }
 
-/* --- Castpotro Component Layer --- 
-  These classes create the 3D "Juicy" effect for buttons and cards.
-*/
+/* --- Castpotro Component Layer --- */
 
-/* 3D Button Base 
-   Note: We repeat these styles in specific classes below to avoid '@apply btn-base' errors.
-*/
+/* 3D Button Base */
 .btn-base {
   @apply uppercase tracking-wider font-extrabold rounded-2xl border-2 border-b-4 transition-all flex items-center justify-center active:border-b-2 active:translate-y-[2px];
 }
