@@ -115,7 +115,7 @@ export async function chatWithGemini(
     // Using 'gemini-1.5-flash' as it is the standard stable model for this SDK.
     // If you have access to newer previews, you can change this string.
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash", 
+      model: "gemini-3-flash-preview", 
       systemInstruction: `
         You are the official AI assistant for the Castpotro website.
 
