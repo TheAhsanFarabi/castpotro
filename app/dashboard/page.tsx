@@ -1,19 +1,31 @@
 "use client";
 import {
-  Flame, Star, Hexagon, Briefcase,
-  ArrowLeft, Play, Zap, Target, Sparkles, Crown, Lightbulb, Trophy 
+  Flame, Star, Hexagon, Briefcase, Lock,
+  ArrowLeft, Play, Target, Sparkles, Crown, Lightbulb, Trophy, 
+  Coins, CheckCircle, X, Loader2, Zap
 } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
 import { SKILLS } from '@/lib/data';
 
-const LessonNode = ({ status, icon, offset }: { status: 'completed' | 'active' | 'locked', icon: any, offset: string }) => {
+// --- Lesson Node Component ---
+const LessonNode = ({ 
+  status, icon, offset, courseId, unitId 
+}: { 
+  status: 'completed' | 'active' | 'locked', 
+  icon: any, offset: string, courseId?: string, unitId?: string
+}) => {
   const getStyles = () => {
     if (status === 'completed') return 'bg-amber-500 border-amber-600 text-white';
     if (status === 'active') return 'bg-[#0ea5e9] border-[#0284c7] text-white';
     return 'bg-slate-200 border-slate-300 text-slate-400';
   };
+
+  // Only link if active/completed
+  const href = status !== 'locked' && courseId && unitId 
+    ? `/dashboard/learn/${courseId}/${unitId}` 
+    : '#';
 
   return (
     <div className="relative z-10" style={{ transform: `translateX(${offset})` }}>
@@ -23,17 +35,65 @@ const LessonNode = ({ status, icon, offset }: { status: 'completed' | 'active' |
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-b-2 border-r-2 border-slate-200 rotate-45"></div>
         </div>
       )}
-      <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl border-b-[8px] cursor-pointer transition-transform active:border-b-0 active:translate-y-2 shadow-xl ${getStyles()}`}>
-        {icon}
-      </div>
+      <Link href={href} className={status === 'locked' ? 'pointer-events-none' : ''}>
+        <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl border-b-[8px] cursor-pointer transition-transform active:border-b-0 active:translate-y-2 shadow-xl ${getStyles()}`}>
+            {icon}
+        </div>
+      </Link>
     </div>
   );
 };
 
 function DashboardContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const courseId = searchParams.get('course');
   const selectedCourse = SKILLS.find(s => s.id === courseId);
+
+  // --- Gamification State ---
+  const [coins, setCoins] = useState(350); // Starting coins
+  const [enrolledCourses, setEnrolledCourses] = useState<string[]>(['public-speaking']); // Mock: User already owns one
+  
+  // --- Modal State ---
+  const [enrollModal, setEnrollModal] = useState<{ isOpen: boolean; courseId: string | null }>({ isOpen: false, courseId: null });
+  const [enrollStatus, setEnrollStatus] = useState<'idle' | 'processing' | 'success'>('idle');
+
+  const courseToEnroll = SKILLS.find(s => s.id === enrollModal.courseId);
+  const ENROLL_COST = 50;
+
+  // --- Handlers ---
+  const handleCourseClick = (skillId: string) => {
+    if (enrolledCourses.includes(skillId)) {
+      // Already enrolled -> Go to course details
+      router.push(`/dashboard?course=${skillId}`);
+    } else {
+      // Not enrolled -> Open Modal
+      setEnrollModal({ isOpen: true, courseId: skillId });
+      setEnrollStatus('idle');
+    }
+  };
+
+  const confirmEnrollment = () => {
+    if (coins < ENROLL_COST) {
+      alert("Not enough coins!"); // In a real app, open a "Buy Coins" modal
+      return;
+    }
+
+    setEnrollStatus('processing');
+
+    // Simulate Network Request & Animation
+    setTimeout(() => {
+      setCoins(prev => prev - ENROLL_COST);
+      setEnrolledCourses(prev => [...prev, enrollModal.courseId!]);
+      setEnrollStatus('success');
+
+      // Auto-navigate after success animation
+      setTimeout(() => {
+        setEnrollModal({ isOpen: false, courseId: null });
+        router.push(`/dashboard?course=${enrollModal.courseId}`);
+      }, 1500);
+    }, 1500);
+  };
 
   return (
     <div className="flex w-full max-w-[1920px] mx-auto">
@@ -67,13 +127,14 @@ function DashboardContent() {
               <Flame fill="#f59e0b" size={20} /> 1
             </div>
             <div className="flex items-center gap-2 text-[#0ea5e9] font-bold bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-100">
-              <Star fill="#0ea5e9" size={20} /> 150
+              <Star fill="#0ea5e9" size={20} /> {coins}
             </div>
           </div>
         </div>
 
         <div className="px-6 lg:px-8 pb-20">
             {selectedCourse ? (
+                // VIEW 1: Course Tree (Only shown if enrolled/selected)
                 <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-300 max-w-2xl mx-auto pt-4">
                     {selectedCourse.units.map((unit, index) => (
                     <div key={index} className="w-full flex flex-col items-center">
@@ -98,6 +159,8 @@ function DashboardContent() {
                                 status={level.status as any}
                                 icon={<level.icon size={32} />}
                                 offset={offset}
+                                courseId={selectedCourse.id}
+                                unitId={level.id}
                             />
                             );
                         })}
@@ -106,46 +169,138 @@ function DashboardContent() {
                     ))}
                 </div>
             ) : (
+                // VIEW 2: Course Grid (With Lock Logic)
                 <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
-                    {SKILLS.map((skill) => (
-                    <Link key={skill.id} href={`/dashboard?course=${skill.id}`}>
-                        <div className="group border-2 border-slate-200 hover:border-sky-300 bg-white rounded-3xl p-6 cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden h-full flex flex-col justify-between min-h-[260px]">
-                        <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <skill.icon size={140} />
-                        </div>
-                        <div>
-                            <div className="flex items-start justify-between mb-6">
-                            <div className={`p-4 rounded-2xl text-white shadow-md ${['public-speaking', 'leadership'].includes(skill.id) ? 'bg-amber-500' : ['emotional-iq', 'negotiation'].includes(skill.id) ? 'bg-rose-500' : 'bg-[#0ea5e9]'}`}>
-                                <skill.icon size={32} />
+                    {SKILLS.map((skill) => {
+                      const isEnrolled = enrolledCourses.includes(skill.id);
+                      return (
+                        <div 
+                            key={skill.id} 
+                            onClick={() => handleCourseClick(skill.id)}
+                            className={`group border-2 rounded-3xl p-6 cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden h-full flex flex-col justify-between min-h-[260px] ${
+                                isEnrolled 
+                                ? 'bg-white border-slate-200 hover:border-sky-300' 
+                                : 'bg-slate-50 border-slate-200 hover:border-amber-300'
+                            }`}
+                        >
+                            <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <skill.icon size={140} />
                             </div>
-                            <span className="text-slate-400 font-bold text-xs uppercase tracking-wider bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                                Module 1
-                            </span>
-                            </div>
-                            <h3 className="text-2xl font-black text-slate-700 mb-2 group-hover:text-[#0ea5e9] transition-colors">{skill.name}</h3>
-                            <p className="text-slate-500 font-medium mb-6 leading-relaxed line-clamp-2">Master the art of {skill.name.toLowerCase()} through interactive scenarios.</p>
-                        </div>
-                        <div className="w-full pt-4 border-t border-slate-50">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-slate-300 w-[0%]"></div>
+                            
+                            <div>
+                                <div className="flex items-start justify-between mb-6">
+                                    <div className={`p-4 rounded-2xl text-white shadow-md transition-colors ${
+                                        isEnrolled 
+                                        ? (['public-speaking', 'leadership'].includes(skill.id) ? 'bg-amber-500' : 'bg-[#0ea5e9]') 
+                                        : 'bg-slate-400 group-hover:bg-amber-500'
+                                    }`}>
+                                        <skill.icon size={32} />
+                                    </div>
+                                    {isEnrolled ? (
+                                        <span className="text-emerald-500 bg-emerald-50 font-black text-xs uppercase tracking-wider px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1">
+                                            <CheckCircle size={14} /> Enrolled
+                                        </span>
+                                    ) : (
+                                        <span className="text-amber-600 bg-amber-100 font-black text-xs uppercase tracking-wider px-3 py-1.5 rounded-lg border border-amber-200 flex items-center gap-1">
+                                            <Lock size={14} /> Locked
+                                        </span>
+                                    )}
                                 </div>
-                                <span className="text-xs font-bold text-slate-300">0%</span>
+                                <h3 className="text-2xl font-black text-slate-700 mb-2 group-hover:text-[#0ea5e9] transition-colors">{skill.name}</h3>
+                                <p className="text-slate-500 font-medium mb-6 leading-relaxed line-clamp-2">Master the art of {skill.name.toLowerCase()} through interactive scenarios.</p>
                             </div>
-                            <button className="w-full py-3.5 rounded-xl border-b-4 border-slate-200 bg-slate-100 text-slate-500 font-extrabold uppercase tracking-wider text-sm group-hover:bg-[#0ea5e9] group-hover:text-white group-hover:border-[#0284c7] transition-all flex items-center justify-center gap-2">
-                                Start Learning <Play size={16} fill="currentColor" />
-                            </button>
+
+                            <div className="w-full pt-4 border-t border-slate-200/60">
+                                {isEnrolled ? (
+                                    <>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="h-full bg-slate-300 w-[0%]"></div>
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-300">0%</span>
+                                        </div>
+                                        <button className="w-full py-3.5 rounded-xl border-b-4 border-slate-200 bg-slate-100 text-slate-500 font-extrabold uppercase tracking-wider text-sm group-hover:bg-[#0ea5e9] group-hover:text-white group-hover:border-[#0284c7] transition-all flex items-center justify-center gap-2">
+                                            Start Learning <Play size={16} fill="currentColor" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button className="w-full py-3.5 rounded-xl border-b-4 border-amber-200 bg-amber-100 text-amber-700 font-extrabold uppercase tracking-wider text-sm group-hover:bg-amber-500 group-hover:text-white group-hover:border-amber-700 transition-all flex items-center justify-center gap-2">
+                                        <Coins size={18} /> Unlock for {ENROLL_COST}
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                        </div>
-                    </Link>
-                    ))}
+                      );
+                    })}
                 </div>
             )}
         </div>
       </div>
 
+      {/* --- ENROLLMENT MODAL --- */}
+      {enrollModal.isOpen && courseToEnroll && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+                
+                {/* Close Button */}
+                <button 
+                    onClick={() => setEnrollModal({ isOpen: false, courseId: null })}
+                    className="absolute top-4 right-4 p-2 bg-slate-100 text-slate-400 rounded-full hover:bg-slate-200 transition z-20"
+                >
+                    <X size={20} />
+                </button>
+
+                <div className="p-8 text-center flex flex-col items-center">
+                    {enrollStatus === 'success' ? (
+                        // Success View
+                        <div className="py-6 flex flex-col items-center animate-in zoom-in duration-300">
+                            <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                                <CheckCircle size={48} strokeWidth={3} />
+                            </div>
+                            <h2 className="text-3xl font-black text-slate-800 mb-2">Unlocked!</h2>
+                            <p className="text-slate-500 font-bold mb-6">You're ready to start {courseToEnroll.name}.</p>
+                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div className="h-full bg-green-500 w-full animate-[wiggle_1s_ease-in-out_infinite]"></div>
+                            </div>
+                            <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-wider">Redirecting...</p>
+                        </div>
+                    ) : (
+                        // Summary/Enroll View
+                        <>
+                            <div className="w-24 h-24 bg-sky-100 text-[#0ea5e9] rounded-3xl flex items-center justify-center mb-6 shadow-sm transform -rotate-6">
+                                <courseToEnroll.icon size={48} />
+                            </div>
+                            <h2 className="text-3xl font-black text-slate-800 mb-2">{courseToEnroll.name}</h2>
+                            <p className="text-slate-500 font-medium mb-8 leading-relaxed">
+                                Unlock full access to interactive lessons, quizzes, and AI mentorship for this skill.
+                            </p>
+
+                            <div className="bg-amber-50 border-2 border-amber-100 p-4 rounded-2xl w-full mb-8 flex items-center justify-between">
+                                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Cost</span>
+                                <div className="flex items-center gap-2 text-amber-600 font-black text-xl">
+                                    <Coins size={24} fill="currentColor" /> {ENROLL_COST}
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={confirmEnrollment}
+                                disabled={enrollStatus === 'processing'}
+                                className="w-full py-4 bg-[#0ea5e9] text-white rounded-2xl font-black text-lg uppercase tracking-widest shadow-[0_6px_0_#0284c7] active:shadow-none active:translate-y-[6px] transition-all flex items-center justify-center gap-3 hover:bg-sky-500 disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {enrollStatus === 'processing' ? (
+                                    <><Loader2 size={24} className="animate-spin" /> Unlocking...</>
+                                ) : (
+                                    <>Unlock Now</>
+                                )}
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+      )}
+
       {/* --- RIGHT SIDEBAR (Symmetrical) --- */}
-      {/* xl:w-[240px] | 2xl:w-[300px] */}
       <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-slate-50/50 p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-100">
         
         <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
@@ -226,6 +381,7 @@ function DashboardContent() {
   );
 }
 
+// --- Main Page Component ---
 export default function Dashboard() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-[#0ea5e9] font-bold">Loading...</div>}>
