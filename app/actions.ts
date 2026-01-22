@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { revalidatePath } from "next/cache";
 
 // --- 1. REGISTER ACTION (Modified for Confetti) ---
 export async function registerAction(prevState: any, formData: FormData) {
@@ -51,7 +52,7 @@ export async function registerAction(prevState: any, formData: FormData) {
   }
 }
 
-// --- 2. LOGIN ACTION (Standard Redirect) ---
+// UPDATE THIS FUNCTION
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -68,13 +69,18 @@ export async function loginAction(prevState: any, formData: FormData) {
     const cookieStore = await cookies();
     cookieStore.set("userId", user.id, { httpOnly: true, path: '/' });
 
+    // --- ROLE BASED REDIRECT ---
+    if (user.role === 'USER') {
+        return { success: true, redirectUrl: "/dashboard" };
+    } else {
+        // Admins, Instructors, etc. go to Admin Panel
+        return { success: true, redirectUrl: "/admin" };
+    }
+
   } catch (error) {
     console.error("Login error:", error);
     return { success: false, message: "Something went wrong." };
   }
-
-  // Redirect happens here (no confetti needed for login usually)
-  redirect("/dashboard");
 }
 
 // --- 3. LOGOUT ACTION ---
@@ -171,5 +177,316 @@ export async function getUserProfile() {
   } catch (error) {
     console.error("Fetch profile error:", error);
     return null;
+  }
+}
+
+// --- 5. ENROLLMENT (Buying a course) ---
+export async function createEnrollment(courseId: string, cost: number) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('userId')?.value;
+
+  if (!userId) return { success: false, message: "Not authenticated" };
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 1. Deduct Coins
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: { coins: { decrement: cost } }
+      });
+
+      if (user.coins < 0) {
+        throw new Error("Insufficient coins");
+      }
+
+      // 2. Create Enrollment
+      await tx.enrollment.create({
+        data: { userId, courseId }
+      });
+    });
+
+    // Revalidate dashboard to update the UI (unlock the course)
+    // using revalidatePath from "next/cache"
+    // Make sure to import { revalidatePath } from "next/cache"; at the top
+    return { success: true };
+  } catch (error) {
+    console.error("Enrollment error:", error);
+    return { success: false };
+  }
+}
+
+// --- 6. COMPLETE LESSON (Progress Tracking) ---
+export async function completeLesson(courseId: string, lessonId: string) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('userId')?.value;
+
+  if (!userId) return { success: false };
+
+  try {
+    // 1. Find the enrollment for this user + course
+    const enrollment = await prisma.enrollment.findUnique({
+      where: { userId_courseId: { userId, courseId } }
+    });
+
+    if (!enrollment) throw new Error("User not enrolled in this course");
+
+    // 2. Mark lesson as complete
+    // We use create because 'CompletedLesson' is a log of finished items
+    await prisma.completedLesson.create({
+      data: {
+        enrollmentId: enrollment.id,
+        lessonId: lessonId
+      }
+    });
+    
+    // 3. Optional: Add XP reward
+    await prisma.user.update({
+      where: { id: userId },
+      data: { xp: { increment: 50 } }
+    });
+
+    return { success: true };
+  } catch (error) {
+    // If it fails (e.g., already completed), we still return success to proceed
+    console.log("Lesson already completed or error:", error);
+    return { success: true }; 
+  }
+}
+
+// --- JOB ACTIONS ---
+
+export async function applyForJob(jobId: string) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('userId')?.value;
+
+  if (!userId) return { success: false, message: "Not authenticated" };
+
+  try {
+    // Check if job exists and is open
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!job || !job.isOpen) {
+      return { success: false, message: "Job is no longer available" };
+    }
+
+    // Create Application
+    await prisma.application.create({
+      data: {
+        userId,
+        jobId,
+      }
+    });
+
+    revalidatePath('/dashboard/jobs');
+    return { success: true };
+  } catch (error) {
+    console.error("Application error:", error);
+    return { success: false, message: "Already applied or error occurred" };
+  }
+}
+
+export async function hireApplicant(applicationId: string, jobId: string) {
+  try {
+    // Transaction: Mark application as HIRED, Close the Job
+    await prisma.$transaction([
+      prisma.application.update({
+        where: { id: applicationId },
+        data: { status: "HIRED" }
+      }),
+      prisma.job.update({
+        where: { id: jobId },
+        data: { isOpen: false } // This removes it from the public board
+      })
+    ]);
+
+    revalidatePath('/admin/jobs');
+    return { success: true };
+  } catch (error) {
+    console.error("Hiring error:", error);
+    return { success: false };
+  }
+}
+
+export async function rejectApplicant(applicationId: string) {
+  try {
+    await prisma.application.update({
+      where: { id: applicationId },
+      data: { status: "REJECTED" }
+    });
+
+    revalidatePath('/admin/jobs');
+    return { success: true };
+  } catch (error) {
+    console.error("Rejection error:", error);
+    return { success: false };
+  }
+}
+
+// --- EVENT ACTIONS ---
+
+export async function registerForEvent(eventId: string) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('userId')?.value;
+
+  if (!userId) return { success: false, message: "Not authenticated" };
+
+  try {
+    // Check capacity logic could go here
+    
+    await prisma.eventRegistration.create({
+      data: {
+        userId,
+        eventId
+      }
+    });
+    
+    revalidatePath('/dashboard/events');
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: "Already registered" };
+  }
+}
+
+// ADMIN ONLY ACTION
+export async function updateEventLink(eventId: string, link: string) {
+  try {
+    // 1. Update Event
+    const event = await prisma.event.update({
+      where: { id: eventId },
+      data: { meetingLink: link },
+      include: { registrations: true }
+    });
+
+    // 2. Send Notification to ALL Registrants
+    // We use createMany to be efficient
+    if (event.registrations.length > 0) {
+      await prisma.notification.createMany({
+        data: event.registrations.map(reg => ({
+          userId: reg.userId,
+          title: "Meeting Link Added",
+          message: `The link for "${event.title}" has been updated. Click to join.`,
+          type: "EVENT",
+          link: link
+        }))
+      });
+    }
+
+    revalidatePath('/admin/events');
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false };
+  }
+}
+
+// --- NOTIFICATION ACTIONS ---
+
+export async function markNotificationRead(notifId: string) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('userId')?.value;
+  
+  if (!userId) return;
+
+  await prisma.notification.update({
+    where: { id: notifId },
+    data: { isRead: true }
+  });
+  
+  revalidatePath('/dashboard/notifications');
+}
+
+// --- NEW: RECOMMENDATION ENGINE ---
+export async function getRecommendations(interests: string[]) {
+  console.log("🔍 Generating recommendations for:", interests);
+
+  // 1. Fetch Matching Courses
+  // Search in Title OR Description
+  const recommendedCourses = await prisma.course.findMany({
+    where: {
+      OR: [
+        ...interests.map(i => ({ title: { contains: i } })),
+        ...interests.map(i => ({ description: { contains: i } })),
+        // "Smart" mappings
+        ...(interests.includes("Business") ? [{ title: { contains: "Startup" } }] : []),
+        ...(interests.includes("AI") ? [{ title: { contains: "Language" } }] : []),
+      ]
+    },
+    take: 3,
+    include: {
+      units: {
+        include: { lessons: true }
+      }
+    }
+  });
+
+  // 2. Fetch Matching Jobs
+  // FIXED: Removed 'tags' check. Now checks 'role' and 'company'
+  const recommendedJobs = await prisma.job.findMany({
+    where: {
+      OR: [
+        ...interests.map(i => ({ role: { contains: i } })),
+        ...interests.map(i => ({ company: { contains: i } })), 
+        // "Smart" mappings for jobs
+        ...(interests.includes("AI") ? [{ role: { contains: "Engineer" } }] : []),
+        ...(interests.includes("Python") ? [{ role: { contains: "Engineer" } }] : []),
+        ...(interests.includes("Design") ? [{ role: { contains: "Designer" } }] : []),
+        ...(interests.includes("Marketing") ? [{ role: { contains: "Content" } }] : []),
+      ]
+    },
+    take: 2,
+  });
+
+  // 3. Fetch Upcoming Events
+  const upcomingEvents = await prisma.event.findMany({
+    orderBy: { date: 'asc' },
+    take: 2,
+  });
+
+  return {
+    courses: recommendedCourses,
+    jobs: recommendedJobs,
+    events: upcomingEvents
+  };
+}
+
+// --- NEW: SAVE USER PLAN ---
+export async function saveUserPlan(courseIds: string[]) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('userId')?.value;
+
+  if (!userId) return { success: false, message: "User not found" };
+
+  try {
+    // Loop through recommended course IDs and enroll the user
+    for (const courseId of courseIds) {
+      // Check if already enrolled to avoid crashing/duplicates
+      const existing = await prisma.enrollment.findUnique({
+        where: { userId_courseId: { userId, courseId } }
+      });
+
+      if (!existing) {
+        // Create enrollment with 0 progress
+        await prisma.enrollment.create({
+          data: {
+            userId,
+            courseId,
+            progress: 0 
+          }
+        });
+      }
+    }
+    
+    // Optional: Reward user with starting Coins for finishing the setup
+    await prisma.user.update({
+      where: { id: userId },
+      data: { coins: { increment: 50 } }
+    });
+    
+    // Ensure the dashboard is fresh when they arrive
+    revalidatePath('/dashboard');
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to save plan:", error);
+    return { success: false };
   }
 }

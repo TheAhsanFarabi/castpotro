@@ -1,15 +1,26 @@
 "use client";
 import Link from "next/link";
-import { Zap } from "lucide-react";
-import { useActionState } from "react";
+import { Zap, Loader2 } from "lucide-react";
+import { useActionState, useEffect } from "react"; // Added useEffect
+import { useRouter } from "next/navigation";      // Added useRouter
 import { loginAction } from "../actions";
 
 const initialState = {
   message: '',
+  success: false,       // Added to track success state
+  redirectUrl: ''       // Added to track where to go
 };
 
 export default function LoginPage() {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(loginAction, initialState);
+
+  // --- NEW: Handle Client-Side Redirect ---
+  useEffect(() => {
+    if (state?.success && state?.redirectUrl) {
+      router.push(state.redirectUrl);
+    }
+  }, [state, router]);
 
   return (
     <div className="min-h-screen flex flex-col items-center p-6 bg-white relative">
@@ -39,12 +50,13 @@ export default function LoginPage() {
              </div>
           </div>
           
-          {state?.message && (
-             <p className="text-red-500 text-sm font-bold">{state.message}</p>
+          {state?.message && !state.success && (
+             <p className="text-red-500 text-sm font-bold animate-pulse">{state.message}</p>
           )}
 
-          <button disabled={isPending} className="btn-primary w-full py-3 text-lg mt-2 shadow-lg shadow-sky-100 disabled:opacity-50">
-            {isPending ? 'Logging in...' : 'Log in'}
+          <button disabled={isPending || state?.success} className="btn-primary w-full py-3 text-lg mt-2 shadow-lg shadow-sky-100 disabled:opacity-50 flex items-center justify-center gap-2">
+            {isPending || state?.success ? <Loader2 className="animate-spin" /> : null}
+            {isPending ? 'Logging in...' : state?.success ? 'Redirecting...' : 'Log in'}
           </button>
         </form>
 
@@ -55,10 +67,10 @@ export default function LoginPage() {
         </div>
 
         <div className="flex gap-4 justify-center">
-            <button className="btn-outline w-full py-3 flex items-center justify-center gap-2 text-[#3b5998]">
+            <button type="button" className="btn-outline w-full py-3 flex items-center justify-center gap-2 text-[#3b5998]">
                Facebook
             </button>
-             <button className="btn-outline w-full py-3 flex items-center justify-center gap-2 text-red-500">
+             <button type="button" className="btn-outline w-full py-3 flex items-center justify-center gap-2 text-red-500">
                Google
             </button>
         </div>
