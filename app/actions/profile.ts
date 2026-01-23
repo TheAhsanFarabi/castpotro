@@ -1,4 +1,4 @@
-'use server'
+"use server";
 
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
@@ -16,24 +16,24 @@ export async function getFullUserProfile() {
       include: {
         // Fetch Course Progress for Certificates
         enrollments: {
-          include: { 
+          include: {
             course: true,
-            completedLessons: true
-          }
+            completedLessons: true,
+          },
         },
         // Fetch Activity Data
         questSubmissions: {
-          where: { status: 'APPROVED' },
+          where: { status: "APPROVED" },
           take: 5,
-          orderBy: { createdAt: 'desc' },
-          include: { quest: true }
+          orderBy: { createdAt: "desc" },
+          include: { quest: true },
         },
         eventRegistrations: {
           take: 5,
-          orderBy: { createdAt: 'desc' },
-          include: { event: true }
-        }
-      }
+          orderBy: { createdAt: "desc" },
+          include: { event: true },
+        },
+      },
     });
 
     if (!user) return null;
@@ -42,44 +42,50 @@ export async function getFullUserProfile() {
     // A course is "Certified" if user completed all lessons (simplified logic for now)
     // Or if progress > 90%
     const certificates = user.enrollments
-      .filter(e => e.progress >= 90 || e.completedLessons.length > 0) // Logic depends on your progress calc
-      .map(e => ({
+      .filter((e) => e.progress >= 90 || e.completedLessons.length > 0) // Logic depends on your progress calc
+      .map((e) => ({
         id: e.course.id,
         title: e.course.title,
         issuer: "Castpotro Academy",
-        issueDate: new Date(e.createdAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' }),
+        issueDate: new Date(e.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
         // Generate a fake Credential ID hash
         credentialId: `CP-${e.course.title.substring(0, 3).toUpperCase()}-${user.id.substring(0, 4)}-${Date.now().toString().substring(8)}`,
-        skills: "Soft Skills, " + e.course.title
+        skills: "Soft Skills, " + e.course.title,
       }));
 
     // --- LOGIC: COMPILE RECENT ACTIVITY ---
     // Merge Quests, Events, and Course progress into one timeline
     const activities = [
-      ...user.questSubmissions.map(q => ({
+      ...user.questSubmissions.map((q) => ({
         id: q.id,
-        type: 'QUEST',
+        type: "QUEST",
         title: `Completed Quest: ${q.quest.title}`,
         date: q.createdAt,
-        xp: `+${q.quest.xp} XP`
+        xp: `+${q.quest.xp} XP`,
       })),
-      ...user.eventRegistrations.map(e => ({
+      ...user.eventRegistrations.map((e) => ({
         id: e.id,
-        type: 'EVENT',
+        type: "EVENT",
         title: `Registered for: ${e.event.title}`,
         date: e.createdAt,
-        xp: '+10 XP' // Base reward for registering
+        xp: "+10 XP", // Base reward for registering
       })),
-      ...user.enrollments.flatMap(e => e.completedLessons.map(l => ({
-        id: l.id,
-        type: 'LESSON',
-        title: `Lesson Complete: ${e.course.title}`, // Ideally fetch lesson title too if included
-        date: l.completedAt,
-        xp: '+50 XP'
-      })))
+      ...user.enrollments.flatMap((e) =>
+        e.completedLessons.map((l) => ({
+          id: l.id,
+          type: "LESSON",
+          title: `Lesson Complete: ${e.course.title}`, // Ideally fetch lesson title too if included
+          date: l.completedAt,
+          xp: "+50 XP",
+        })),
+      ),
     ]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 10); // Top 10 activities
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 10); // Top 10 activities
 
     // --- LOGIC: LEAGUE CALCULATION ---
     let league = "Bronze";
@@ -89,21 +95,31 @@ export async function getFullUserProfile() {
 
     return {
       user: {
+        id: user.id, // <--- FIXED: Added this line so the client can fetch streaks
         name: user.name || "Learner",
         email: user.email,
-        handle: user.name ? `@${user.name.replace(/\s+/g, '').toLowerCase()}` : "@learner",
+        handle: user.name
+          ? `@${user.name.replace(/\s+/g, "").toLowerCase()}`
+          : "@learner",
         location: user.location || "Earth",
         bio: user.bio || "Ready to learn and grow.",
         xp: user.xp,
         league,
         coins: user.coins,
-        avatar: user.avatarConfig as any || { color: "bg-[#0ea5e9]", shape: "rounded-full", icon: "👤" },
-        banner: user.bannerConfig as any || { type: "gradient", style: { background: "linear-gradient(to right, #06b6d4, #3b82f6)" }, name: "Ocean" }
+        avatar: (user.avatarConfig as any) || {
+          color: "bg-[#0ea5e9]",
+          shape: "rounded-full",
+          icon: "👤",
+        },
+        banner: (user.bannerConfig as any) || {
+          type: "gradient",
+          style: { background: "linear-gradient(to right, #06b6d4, #3b82f6)" },
+          name: "Ocean",
+        },
       },
       certificates,
-      activities
+      activities,
     };
-
   } catch (error) {
     console.error("Profile Fetch Error:", error);
     return null;
@@ -120,25 +136,29 @@ export async function updateAppearance(avatar: any, banner: any) {
     where: { id: userId },
     data: {
       avatarConfig: avatar,
-      bannerConfig: banner
-    }
+      bannerConfig: banner,
+    },
   });
 
-  revalidatePath('/dashboard/profile');
+  revalidatePath("/dashboard/profile");
   return { success: true };
 }
 
 // --- 3. UPDATE DETAILS (Bio/Location) ---
-export async function updateProfileDetails(name: string, bio: string, location: string) {
+export async function updateProfileDetails(
+  name: string,
+  bio: string,
+  location: string,
+) {
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
   if (!userId) return { success: false };
 
   await prisma.user.update({
     where: { id: userId },
-    data: { name, bio, location }
+    data: { name, bio, location },
   });
 
-  revalidatePath('/dashboard/profile');
+  revalidatePath("/dashboard/profile");
   return { success: true };
 }
