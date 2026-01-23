@@ -1,4 +1,4 @@
-'use server'
+"use server";
 
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -40,15 +40,17 @@ export async function registerAction(prevState: any, formData: FormData) {
 
     // Create session
     const cookieStore = await cookies();
-    cookieStore.set("userId", user.id, { httpOnly: true, path: '/' });
+    cookieStore.set("userId", user.id, { httpOnly: true, path: "/" });
 
     // CRITICAL CHANGE: We return success instead of redirecting.
     // This allows the Client Component to show the Confetti first.
     return { success: true, message: "Account created successfully!" };
-
   } catch (error) {
     console.error("Registration error:", error);
-    return { success: false, message: "Something went wrong. Please try again." };
+    return {
+      success: false,
+      message: "Something went wrong. Please try again.",
+    };
   }
 }
 
@@ -67,16 +69,15 @@ export async function loginAction(prevState: any, formData: FormData) {
     }
 
     const cookieStore = await cookies();
-    cookieStore.set("userId", user.id, { httpOnly: true, path: '/' });
+    cookieStore.set("userId", user.id, { httpOnly: true, path: "/" });
 
     // --- ROLE BASED REDIRECT ---
-    if (user.role === 'USER') {
-        return { success: true, redirectUrl: "/dashboard" };
+    if (user.role === "USER") {
+      return { success: true, redirectUrl: "/dashboard" };
     } else {
-        // Admins, Instructors, etc. go to Admin Panel
-        return { success: true, redirectUrl: "/admin" };
+      // Admins, Instructors, etc. go to Admin Panel
+      return { success: true, redirectUrl: "/admin" };
     }
-
   } catch (error) {
     console.error("Login error:", error);
     return { success: false, message: "Something went wrong." };
@@ -114,13 +115,13 @@ It focuses on skill growth, proof of learning, and credibility.
 
 export async function chatWithGemini(
   history: { role: "user" | "ai"; text: string }[],
-  message: string
+  message: string,
 ) {
   try {
     // Using 'gemini-1.5-flash' as it is the standard stable model for this SDK.
     // If you have access to newer previews, you can change this string.
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash", 
+      model: "gemini-3-flash-preview",
       systemInstruction: `
         You are the official AI assistant for the Castpotro website.
 
@@ -138,7 +139,7 @@ export async function chatWithGemini(
     });
 
     // Convert history to Gemini format
-    let formattedHistory = history.map(msg => ({
+    let formattedHistory = history.map((msg) => ({
       role: msg.role === "ai" ? "model" : "user",
       parts: [{ text: msg.text }],
     }));
@@ -154,7 +155,6 @@ export async function chatWithGemini(
 
     const result = await chat.sendMessage(message);
     return result.response.text();
-
   } catch (error) {
     console.error("Gemini API Error:", error);
     return "I'm having trouble connecting to my brain right now. Please check my API key!";
@@ -171,7 +171,7 @@ export async function getUserProfile() {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, email: true }
+      select: { name: true, email: true },
     });
     return user;
   } catch (error) {
@@ -183,7 +183,7 @@ export async function getUserProfile() {
 // --- 5. ENROLLMENT (Buying a course) ---
 export async function createEnrollment(courseId: string, cost: number) {
   const cookieStore = await cookies();
-  const userId = cookieStore.get('userId')?.value;
+  const userId = cookieStore.get("userId")?.value;
 
   if (!userId) return { success: false, message: "Not authenticated" };
 
@@ -192,7 +192,7 @@ export async function createEnrollment(courseId: string, cost: number) {
       // 1. Deduct Coins
       const user = await tx.user.update({
         where: { id: userId },
-        data: { coins: { decrement: cost } }
+        data: { coins: { decrement: cost } },
       });
 
       if (user.coins < 0) {
@@ -201,7 +201,7 @@ export async function createEnrollment(courseId: string, cost: number) {
 
       // 2. Create Enrollment
       await tx.enrollment.create({
-        data: { userId, courseId }
+        data: { userId, courseId },
       });
     });
 
@@ -218,14 +218,14 @@ export async function createEnrollment(courseId: string, cost: number) {
 // --- 6. COMPLETE LESSON (Progress Tracking) ---
 export async function completeLesson(courseId: string, lessonId: string) {
   const cookieStore = await cookies();
-  const userId = cookieStore.get('userId')?.value;
+  const userId = cookieStore.get("userId")?.value;
 
   if (!userId) return { success: false };
 
   try {
     // 1. Find the enrollment for this user + course
     const enrollment = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId, courseId } }
+      where: { userId_courseId: { userId, courseId } },
     });
 
     if (!enrollment) throw new Error("User not enrolled in this course");
@@ -235,21 +235,21 @@ export async function completeLesson(courseId: string, lessonId: string) {
     await prisma.completedLesson.create({
       data: {
         enrollmentId: enrollment.id,
-        lessonId: lessonId
-      }
+        lessonId: lessonId,
+      },
     });
-    
+
     // 3. Optional: Add XP reward
     await prisma.user.update({
       where: { id: userId },
-      data: { xp: { increment: 50 } }
+      data: { xp: { increment: 50 } },
     });
 
     return { success: true };
   } catch (error) {
     // If it fails (e.g., already completed), we still return success to proceed
     console.log("Lesson already completed or error:", error);
-    return { success: true }; 
+    return { success: true };
   }
 }
 
@@ -257,7 +257,7 @@ export async function completeLesson(courseId: string, lessonId: string) {
 
 export async function applyForJob(jobId: string) {
   const cookieStore = await cookies();
-  const userId = cookieStore.get('userId')?.value;
+  const userId = cookieStore.get("userId")?.value;
 
   if (!userId) return { success: false, message: "Not authenticated" };
 
@@ -273,10 +273,10 @@ export async function applyForJob(jobId: string) {
       data: {
         userId,
         jobId,
-      }
+      },
     });
 
-    revalidatePath('/dashboard/jobs');
+    revalidatePath("/dashboard/jobs");
     return { success: true };
   } catch (error) {
     console.error("Application error:", error);
@@ -290,15 +290,15 @@ export async function hireApplicant(applicationId: string, jobId: string) {
     await prisma.$transaction([
       prisma.application.update({
         where: { id: applicationId },
-        data: { status: "HIRED" }
+        data: { status: "HIRED" },
       }),
       prisma.job.update({
         where: { id: jobId },
-        data: { isOpen: false } // This removes it from the public board
-      })
+        data: { isOpen: false }, // This removes it from the public board
+      }),
     ]);
 
-    revalidatePath('/admin/jobs');
+    revalidatePath("/admin/jobs");
     return { success: true };
   } catch (error) {
     console.error("Hiring error:", error);
@@ -310,10 +310,10 @@ export async function rejectApplicant(applicationId: string) {
   try {
     await prisma.application.update({
       where: { id: applicationId },
-      data: { status: "REJECTED" }
+      data: { status: "REJECTED" },
     });
 
-    revalidatePath('/admin/jobs');
+    revalidatePath("/admin/jobs");
     return { success: true };
   } catch (error) {
     console.error("Rejection error:", error);
@@ -325,21 +325,21 @@ export async function rejectApplicant(applicationId: string) {
 
 export async function registerForEvent(eventId: string) {
   const cookieStore = await cookies();
-  const userId = cookieStore.get('userId')?.value;
+  const userId = cookieStore.get("userId")?.value;
 
   if (!userId) return { success: false, message: "Not authenticated" };
 
   try {
     // Check capacity logic could go here
-    
+
     await prisma.eventRegistration.create({
       data: {
         userId,
-        eventId
-      }
+        eventId,
+      },
     });
-    
-    revalidatePath('/dashboard/events');
+
+    revalidatePath("/dashboard/events");
     return { success: true };
   } catch (error) {
     return { success: false, message: "Already registered" };
@@ -353,24 +353,24 @@ export async function updateEventLink(eventId: string, link: string) {
     const event = await prisma.event.update({
       where: { id: eventId },
       data: { meetingLink: link },
-      include: { registrations: true }
+      include: { registrations: true },
     });
 
     // 2. Send Notification to ALL Registrants
     // We use createMany to be efficient
     if (event.registrations.length > 0) {
       await prisma.notification.createMany({
-        data: event.registrations.map(reg => ({
+        data: event.registrations.map((reg) => ({
           userId: reg.userId,
           title: "Meeting Link Added",
           message: `The link for "${event.title}" has been updated. Click to join.`,
           type: "EVENT",
-          link: link
-        }))
+          link: link,
+        })),
       });
     }
 
-    revalidatePath('/admin/events');
+    revalidatePath("/admin/events");
     return { success: true };
   } catch (error) {
     console.error(error);
@@ -382,16 +382,16 @@ export async function updateEventLink(eventId: string, link: string) {
 
 export async function markNotificationRead(notifId: string) {
   const cookieStore = await cookies();
-  const userId = cookieStore.get('userId')?.value;
-  
+  const userId = cookieStore.get("userId")?.value;
+
   if (!userId) return;
 
   await prisma.notification.update({
     where: { id: notifId },
-    data: { isRead: true }
+    data: { isRead: true },
   });
-  
-  revalidatePath('/dashboard/notifications');
+
+  revalidatePath("/dashboard/notifications");
 }
 
 // --- NEW: RECOMMENDATION ENGINE ---
@@ -403,19 +403,23 @@ export async function getRecommendations(interests: string[]) {
   const recommendedCourses = await prisma.course.findMany({
     where: {
       OR: [
-        ...interests.map(i => ({ title: { contains: i } })),
-        ...interests.map(i => ({ description: { contains: i } })),
+        ...interests.map((i) => ({ title: { contains: i } })),
+        ...interests.map((i) => ({ description: { contains: i } })),
         // "Smart" mappings
-        ...(interests.includes("Business") ? [{ title: { contains: "Startup" } }] : []),
-        ...(interests.includes("AI") ? [{ title: { contains: "Language" } }] : []),
-      ]
+        ...(interests.includes("Business")
+          ? [{ title: { contains: "Startup" } }]
+          : []),
+        ...(interests.includes("AI")
+          ? [{ title: { contains: "Language" } }]
+          : []),
+      ],
     },
     take: 3,
     include: {
       units: {
-        include: { lessons: true }
-      }
-    }
+        include: { lessons: true },
+      },
+    },
   });
 
   // 2. Fetch Matching Jobs
@@ -423,35 +427,43 @@ export async function getRecommendations(interests: string[]) {
   const recommendedJobs = await prisma.job.findMany({
     where: {
       OR: [
-        ...interests.map(i => ({ role: { contains: i } })),
-        ...interests.map(i => ({ company: { contains: i } })), 
+        ...interests.map((i) => ({ role: { contains: i } })),
+        ...interests.map((i) => ({ company: { contains: i } })),
         // "Smart" mappings for jobs
-        ...(interests.includes("AI") ? [{ role: { contains: "Engineer" } }] : []),
-        ...(interests.includes("Python") ? [{ role: { contains: "Engineer" } }] : []),
-        ...(interests.includes("Design") ? [{ role: { contains: "Designer" } }] : []),
-        ...(interests.includes("Marketing") ? [{ role: { contains: "Content" } }] : []),
-      ]
+        ...(interests.includes("AI")
+          ? [{ role: { contains: "Engineer" } }]
+          : []),
+        ...(interests.includes("Python")
+          ? [{ role: { contains: "Engineer" } }]
+          : []),
+        ...(interests.includes("Design")
+          ? [{ role: { contains: "Designer" } }]
+          : []),
+        ...(interests.includes("Marketing")
+          ? [{ role: { contains: "Content" } }]
+          : []),
+      ],
     },
     take: 2,
   });
 
   // 3. Fetch Upcoming Events
   const upcomingEvents = await prisma.event.findMany({
-    orderBy: { date: 'asc' },
+    orderBy: { date: "asc" },
     take: 2,
   });
 
   return {
     courses: recommendedCourses,
     jobs: recommendedJobs,
-    events: upcomingEvents
+    events: upcomingEvents,
   };
 }
 
 // --- NEW: SAVE USER PLAN ---
 export async function saveUserPlan(courseIds: string[]) {
   const cookieStore = await cookies();
-  const userId = cookieStore.get('userId')?.value;
+  const userId = cookieStore.get("userId")?.value;
 
   if (!userId) return { success: false, message: "User not found" };
 
@@ -460,7 +472,7 @@ export async function saveUserPlan(courseIds: string[]) {
     for (const courseId of courseIds) {
       // Check if already enrolled to avoid crashing/duplicates
       const existing = await prisma.enrollment.findUnique({
-        where: { userId_courseId: { userId, courseId } }
+        where: { userId_courseId: { userId, courseId } },
       });
 
       if (!existing) {
@@ -469,20 +481,20 @@ export async function saveUserPlan(courseIds: string[]) {
           data: {
             userId,
             courseId,
-            progress: 0 
-          }
+            progress: 0,
+          },
         });
       }
     }
-    
+
     // Optional: Reward user with starting Coins for finishing the setup
     await prisma.user.update({
       where: { id: userId },
-      data: { coins: { increment: 50 } }
+      data: { coins: { increment: 50 } },
     });
-    
+
     // Ensure the dashboard is fresh when they arrive
-    revalidatePath('/dashboard');
+    revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {
