@@ -330,19 +330,53 @@ export async function registerForEvent(eventId: string) {
   if (!userId) return { success: false, message: "Not authenticated" };
 
   try {
-    // Check capacity logic could go here
+    // Use a transaction to ensure the check and registration happen together
+    await prisma.$transaction(async (tx) => {
+      // 1. Get the event's capacity
+      const event = await tx.event.findUnique({
+        where: { id: eventId },
+        select: { capacity: true, title: true },
+      });
 
-    await prisma.eventRegistration.create({
-      data: {
-        userId,
-        eventId,
-      },
+      if (!event) throw new Error("Event not found");
+
+      // 2. Count how many people are already registered
+      const currentRegistrations = await tx.eventRegistration.count({
+        where: { eventId },
+      });
+
+      // 3. STOP if the event is full
+      if (currentRegistrations >= event.capacity) {
+        throw new Error("Event is full");
+      }
+
+      // 4. If space is available, create the registration
+      await tx.eventRegistration.create({
+        data: {
+          userId,
+          eventId,
+        },
+      });
     });
 
     revalidatePath("/dashboard/events");
     return { success: true };
-  } catch (error) {
-    return { success: false, message: "Already registered" };
+  } catch (error: any) {
+    // Handle specific errors
+    if (error.message === "Event is full") {
+      return { success: false, message: "Sorry, this event is fully booked." };
+    }
+
+    // Prisma error code for Unique Constraint (User already registered)
+    if (error.code === "P2002") {
+      return {
+        success: false,
+        message: "You are already registered for this event.",
+      };
+    }
+
+    console.error("Registration error:", error);
+    return { success: false, message: "Failed to register" };
   }
 }
 
