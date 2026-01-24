@@ -23,7 +23,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { createEnrollment } from "@/app/actions";
-import StreakWidget from "@/app/components/StreakWidget"; // Import Widget
+import StreakWidget from "@/app/components/StreakWidget"; 
 
 // --- Lesson Node Component ---
 const LessonNode = ({
@@ -79,11 +79,11 @@ const LessonNode = ({
 export default function DashboardClient({
   user,
   courses,
-  streakData, // Added Prop
+  streakData, 
 }: {
   user: any;
   courses: any[];
-  streakData: { streak: number; weekActivity: boolean[] }; // Added Type
+  streakData: { streak: number; weekActivity: boolean[] };
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -483,11 +483,10 @@ export default function DashboardClient({
 
       {/* --- RIGHT SIDEBAR --- */}
       <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-slate-50/50 p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-100">
-        {/* ADDED: STREAK WIDGET */}
+        
         <StreakWidget
           streak={streakData.streak}
           weekActivity={streakData.weekActivity}
-          coins={coins} // Pass the coins state here
         />
 
         <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
@@ -520,30 +519,33 @@ export default function DashboardClient({
           </div>
         </div>
 
-        {/* Ads Widget */}
-        <div className="bg-gradient-to-br from-[#0ea5e9] to-violet-600 rounded-2xl p-6 text-white relative overflow-hidden group cursor-pointer shadow-lg shadow-sky-200">
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <Crown
-                size={24}
-                className="text-yellow-300 animate-pulse"
-                fill="currentColor"
-              />
-              <h3 className="font-black text-lg uppercase tracking-wide">
-                Plus
-              </h3>
+        {/* Ads Widget - WRAPPED IN LINK */}
+        <Link href="/dashboard/plus">
+          <div className="bg-gradient-to-br from-[#0ea5e9] to-violet-600 rounded-2xl p-6 text-white relative overflow-hidden group cursor-pointer shadow-lg shadow-sky-200 transition-transform hover:scale-[1.02] active:scale-95">
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <Crown
+                  size={24}
+                  className="text-yellow-300 animate-pulse"
+                  fill="currentColor"
+                />
+                <h3 className="font-black text-lg uppercase tracking-wide">
+                  Plus
+                </h3>
+              </div>
+              <p className="text-white/90 text-xs font-medium mb-4 leading-relaxed">
+                Boost XP by 2x & exclusive avatars.
+              </p>
+              <button className="w-full py-2.5 bg-white text-[#0ea5e9] rounded-xl font-extrabold text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-95 transition-all">
+                Try 7 Days Free
+              </button>
             </div>
-            <p className="text-white/90 text-xs font-medium mb-4 leading-relaxed">
-              Boost XP by 2x & exclusive avatars.
-            </p>
-            <button className="w-full py-2.5 bg-white text-[#0ea5e9] rounded-xl font-extrabold text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-95 transition-all">
-              Try 7 Days Free
-            </button>
+            <div className="absolute -right-6 -top-6 opacity-20 rotate-12 group-hover:rotate-[20deg] transition-transform duration-700">
+              <Sparkles size={140} />
+            </div>
           </div>
-          <div className="absolute -right-6 -top-6 opacity-20 rotate-12 group-hover:rotate-[20deg] transition-transform duration-700">
-            <Sparkles size={140} />
-          </div>
-        </div>
+        </Link>
+        
       </div>
     </div>
   );
