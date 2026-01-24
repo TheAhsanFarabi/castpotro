@@ -17,7 +17,9 @@ const NavItem = ({ icon, label, href }: { icon: any, label: string, href: string
     <Link href={href} className="w-full">
       <div className={`
         flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition
-        ${isActive ? 'bg-sky-50 text-[#0ea5e9] border-2 border-sky-200' : 'text-slate-400 hover:bg-slate-50 border-2 border-transparent'}
+        ${isActive 
+            ? 'bg-violet-50 text-violet-600 border-2 border-violet-200' 
+            : 'text-slate-400 hover:bg-slate-50 border-2 border-transparent'}
       `}>
         {icon}
         <span className="hidden xl:block font-extrabold uppercase text-sm tracking-widest">{label}</span>
@@ -30,12 +32,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans text-slate-900">
       
-      {/* SIDEBAR NAVIGATION - COMPACT SYMMETRY */}
-      {/* md:w-20 (Icons) | xl:w-[240px] (Compact Laptop) | 2xl:w-[300px] (Desktop) */}
+      {/* SIDEBAR NAVIGATION - Exact Original Dimensions */}
       <nav className="w-full md:w-20 xl:w-[240px] 2xl:w-[300px] md:h-screen bg-white border-r-2 border-slate-100 fixed md:static bottom-0 z-50 px-4 md:px-3 xl:px-4 py-2 md:py-8 flex md:flex-col justify-between md:justify-start gap-2 md:gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:shadow-none shrink-0 transition-all duration-300">
-         <Link href="/" className="hidden md:flex items-center justify-center xl:justify-start gap-2 text-2xl font-extrabold text-[#0ea5e9] tracking-tighter mb-8 px-0 xl:px-4">
-           <Zap fill="#0ea5e9" size={28} /> 
-           <span className="hidden xl:block">castpotro</span>
+         <Link href="/" className="hidden md:flex items-center justify-center xl:justify-start gap-2 text-2xl font-extrabold tracking-tighter mb-8 px-0 xl:px-4 group">
+           <div className="text-violet-600 bg-violet-100 p-1.5 rounded-lg group-hover:rotate-12 transition-transform">
+             <Zap fill="currentColor" size={24} /> 
+           </div>
+           <span className="hidden xl:block text-slate-700 group-hover:text-violet-600 transition-colors">castpotro</span>
          </Link>
          
          <div className="flex flex-col gap-2 w-full overflow-y-auto no-scrollbar pb-20 md:pb-0">

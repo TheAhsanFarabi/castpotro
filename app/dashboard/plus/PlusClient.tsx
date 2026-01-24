@@ -3,15 +3,25 @@
 import { useState, useEffect } from "react";
 import { 
   Coins, Crown, CheckCircle, Zap, Sparkles, Loader2, 
-  ShieldCheck, Rocket, Star, Gem 
+  ShieldCheck, Rocket, Star, Gem, X 
 } from "lucide-react";
 import { purchasePlusAction, refillCoinsAction } from "@/app/actions/billing";
 import { useRouter } from "next/navigation";
+import confetti from "canvas-confetti"; 
+import { motion, AnimatePresence } from "framer-motion"; // Import Framer Motion
 
 export default function PlusClient({ userCoins }: { userCoins: number }) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [isPlus, setIsPlus] = useState(false);
+  
+  // Custom Success Modal State
+  const [successModal, setSuccessModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "plus" | "coins";
+  }>({ isOpen: false, title: "", message: "", type: "coins" });
 
   useEffect(() => {
     const plusStatus = localStorage.getItem("castpotro_plus_active");
@@ -34,9 +44,24 @@ export default function PlusClient({ userCoins }: { userCoins: number }) {
     setLoading(null);
 
     if (res.success) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#7c3aed', '#ec4899', '#fbbf24']
+      });
+
       localStorage.setItem("castpotro_plus_active", "true");
       setIsPlus(true);
-      alert(res.message);
+      
+      // Show Modern Modal
+      setSuccessModal({
+        isOpen: true,
+        title: "Welcome to Plus!",
+        message: "You've successfully upgraded. Enjoy unlimited hearts and double XP!",
+        type: "plus"
+      });
+      
       router.refresh();
     } else {
       alert(res.message);
@@ -45,19 +70,39 @@ export default function PlusClient({ userCoins }: { userCoins: number }) {
 
   const handleRefill = async (amount: number, price: number) => {
     setLoading(`refill-${amount}`);
-    await new Promise(r => setTimeout(r, 1000)); // Simulate delay
+    await new Promise(r => setTimeout(r, 1000)); 
     const res = await refillCoinsAction(amount);
     setLoading(null);
+
     if (res.success) {
-      alert(`Payment of $${price} successful! ${amount} coins added.`);
+      const duration = 3 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 50 };
+      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+      const interval: any = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
+        const particleCount = 50 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+      }, 250);
+
+      // Show Modern Modal
+      setSuccessModal({
+        isOpen: true,
+        title: "Coins Added!",
+        message: `Successfully added ${amount.toLocaleString()} coins to your wallet.`,
+        type: "coins"
+      });
+      
       router.refresh();
     } else {
-      alert("Payment failed.");
+      alert("Payment failed. Please try again.");
     }
   };
 
   return (
-    // FIXED: Changed overflow-hidden to overflow-x-hidden so vertical scroll works
     <div className="min-h-screen w-full bg-slate-50 relative overflow-x-hidden pb-40">
       
       {/* BACKGROUND DECORATION */}
@@ -83,7 +128,6 @@ export default function PlusClient({ userCoins }: { userCoins: number }) {
 
         {/* --- PRICING CARDS --- */}
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 mb-24 max-w-5xl mx-auto">
-          
           {/* MONTHLY CARD */}
           <div className={`relative p-10 rounded-[48px] border-[3px] transition-all duration-300 group flex flex-col h-full ${
             isPlus 
@@ -139,7 +183,6 @@ export default function PlusClient({ userCoins }: { userCoins: number }) {
              ? "bg-slate-100 border-slate-200" 
              : "bg-gradient-to-br from-slate-900 to-slate-800 border-slate-800 text-white shadow-2xl hover:-translate-y-2"
           }`}>
-            {/* Best Value Badge */}
             {!isPlus && (
               <div className="absolute top-0 right-0 bg-gradient-to-l from-violet-500 to-pink-500 text-white px-8 py-3 rounded-bl-[40px] font-black text-sm uppercase tracking-widest shadow-lg">
                 Best Value
@@ -188,8 +231,6 @@ export default function PlusClient({ userCoins }: { userCoins: number }) {
             >
                {loading === "plus-YEARLY" ? <Loader2 className="animate-spin" /> : (isPlus ? "Plan Active" : "Get Yearly Access")}
             </button>
-            
-            {/* Decoration */}
             <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-violet-600/30 rounded-full blur-[80px] pointer-events-none"></div>
           </div>
         </div>
@@ -252,6 +293,59 @@ export default function PlusClient({ userCoins }: { userCoins: number }) {
         </div>
 
       </div>
+
+      {/* --- MODERN SUCCESS MODAL --- */}
+      <AnimatePresence>
+        {successModal.isOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSuccessModal({ ...successModal, isOpen: false })}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            
+            {/* Modal Content */}
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-white w-full max-w-sm rounded-[40px] p-8 text-center shadow-2xl overflow-hidden"
+            >
+               {/* Close Button */}
+               <button 
+                 onClick={() => setSuccessModal({ ...successModal, isOpen: false })}
+                 className="absolute top-4 right-4 p-2 bg-slate-100 text-slate-400 rounded-full hover:bg-slate-200 transition-colors"
+               >
+                 <X size={20} />
+               </button>
+
+               {/* Icon Animation */}
+               <div className="relative mb-6 mx-auto w-32 h-32 flex items-center justify-center">
+                  <div className={`absolute inset-0 rounded-full opacity-20 animate-pulse ${successModal.type === 'plus' ? 'bg-pink-500' : 'bg-yellow-500'}`} />
+                  <div className={`relative z-10 w-24 h-24 rounded-full flex items-center justify-center ${successModal.type === 'plus' ? 'bg-pink-100 text-pink-500' : 'bg-yellow-100 text-yellow-600'}`}>
+                    {successModal.type === 'plus' ? <Crown size={48} fill="currentColor" /> : <Coins size={48} fill="currentColor" />}
+                  </div>
+               </div>
+
+               <h2 className="text-3xl font-black text-slate-800 mb-2">{successModal.title}</h2>
+               <p className="text-slate-500 font-medium mb-8 leading-relaxed">
+                 {successModal.message}
+               </p>
+
+               <button 
+                 onClick={() => setSuccessModal({ ...successModal, isOpen: false })}
+                 className={`w-full py-4 rounded-2xl font-black text-lg uppercase tracking-widest text-white shadow-lg transition-transform active:scale-95 ${successModal.type === 'plus' ? 'bg-gradient-to-r from-pink-500 to-violet-600 shadow-pink-200' : 'bg-yellow-500 shadow-yellow-200 hover:bg-yellow-400'}`}
+               >
+                 Awesome!
+               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
