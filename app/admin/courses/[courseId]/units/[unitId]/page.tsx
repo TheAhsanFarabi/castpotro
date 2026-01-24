@@ -1,103 +1,121 @@
 import { prisma } from "@/lib/prisma";
-import { createLesson, deleteLesson } from "@/app/actions/admin";
+import { createLesson } from "@/app/actions/admin";
 import Link from "next/link";
-import { ArrowLeft, Plus, Trash2, PlayCircle, BookOpen, HelpCircle } from "lucide-react";
+import { ArrowLeft, Plus, Video, FileText, ChevronRight, BrainCircuit, BookOpen } from "lucide-react";
 
-export default async function UnitLessonsPage({ 
+export default async function UnitDetailsPage({ 
   params 
 }: { 
   params: Promise<{ courseId: string, unitId: string }> 
 }) {
-  // Await params
   const { courseId, unitId } = await params;
 
   const unit = await prisma.unit.findUnique({
     where: { id: unitId },
-    include: { lessons: true, course: true }
+    include: {
+      course: true,
+      lessons: {
+        orderBy: { title: 'asc' },
+        include: { questions: true } // Fetch questions count
+      }
+    }
   });
 
   if (!unit) return <div>Unit not found</div>;
 
   return (
-    <div>
-      <Link href={`/admin/courses`} className="flex items-center gap-2 text-slate-400 font-bold mb-6 hover:text-slate-600">
-        <ArrowLeft size={18} /> Back to Course
-      </Link>
+    <div className="max-w-5xl mx-auto space-y-8">
       
-      <h1 className="text-3xl font-bold text-slate-800 mb-2">{unit.title} <span className="text-slate-400">/ Lessons</span></h1>
-      <p className="text-slate-500 mb-8">Manage lessons and their specific quizzes.</p>
-
-      {/* Create Form */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
-        <h2 className="font-bold text-lg mb-4">Add New Lesson</h2>
-        <form action={createLesson} className="flex flex-col gap-4">
-          <input type="hidden" name="unitId" value={unitId} />
-          <input type="hidden" name="courseId" value={courseId} />
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Lesson Title</label>
-                <input name="title" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200" placeholder="e.g. Understanding Pitch" required />
-            </div>
-            <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Video URL (Optional)</label>
-                <input name="videoUrl" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200" placeholder="YouTube Embed URL" />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase">Theory Content</label>
-            <textarea name="theory" rows={4} className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 font-mono text-sm" placeholder="Write lesson content here... (Supports basic text)" required />
-          </div>
-
-          <button className="bg-[#0ea5e9] text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-sky-600 transition w-full">
-            <Plus size={20} /> Add Lesson
-          </button>
-        </form>
+      {/* --- Header --- */}
+      <div className="flex items-center gap-4">
+        <Link href={`/admin/courses/${courseId}`} className="p-2 hover:bg-slate-100 rounded-xl transition text-slate-500">
+            <ArrowLeft size={20} />
+        </Link>
+        <div>
+            <h1 className="text-2xl font-bold text-slate-800">{unit.title}</h1>
+            <p className="text-slate-500 font-medium">Unit in {unit.course.title}</p>
+        </div>
       </div>
 
-      {/* Lessons List */}
-      <div className="grid gap-4">
-        {unit.lessons.map(lesson => (
-          <div key={lesson.id} className="bg-white p-6 rounded-xl border border-slate-200 flex flex-col gap-4 shadow-sm hover:shadow-md transition">
-            <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                    <div className="bg-sky-50 text-[#0ea5e9] p-2 rounded-lg">
-                        {lesson.videoUrl ? <PlayCircle size={24} /> : <BookOpen size={24} />}
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg text-slate-800">{lesson.title}</h3>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-0.5">Lesson ID: {lesson.id.slice(-6)}</div>
-                    </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* --- LEFT COL: Add Lesson (Simplified) --- */}
+        <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm sticky top-6">
+                <div className="flex items-center gap-2 mb-6 text-slate-700">
+                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><Plus size={20} /></div>
+                    <h3 className="font-bold">Add Lesson</h3>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                    {/* LINK TO QUIZ PAGE */}
-                    <Link 
-                        href={`/admin/courses/${courseId}/units/${unitId}/lessons/${lesson.id}`} 
-                        className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-100 transition border border-indigo-100 flex items-center gap-2"
-                    >
-                        <HelpCircle size={16} /> Manage Quiz
-                    </Link>
 
-                    <form action={deleteLesson.bind(null, lesson.id, unit.id, unit.courseId)}>
-                        <button className="text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition">
-                            <Trash2 size={20} />
-                        </button>
-                    </form>
+                <form action={createLesson} className="space-y-4">
+                    <input type="hidden" name="unitId" value={unitId} />
+                    <input type="hidden" name="courseId" value={courseId} />
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase">Lesson Title</label>
+                        <input name="title" required className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-indigo-500" placeholder="e.g. Introduction to React" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase">Video URL (Optional)</label>
+                        <input name="videoUrl" className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-indigo-500" placeholder="https://youtube.com/..." />
+                    </div>
+                    
+                    {/* REMOVED: Theory Textarea (Use the rich editor instead) */}
+
+                    <button className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition shadow-md shadow-indigo-200">
+                        Create Lesson
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {/* --- RIGHT COL: Existing Lessons --- */}
+        <div className="lg:col-span-2 space-y-4">
+            <h3 className="font-bold text-slate-700 mb-2">Lessons ({unit.lessons.length})</h3>
+
+            {unit.lessons.length === 0 && (
+                <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400">
+                    No lessons created yet.
                 </div>
-            </div>
-            
-            <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-600 font-medium line-clamp-2 border border-slate-100">
-                {lesson.theory}
-            </div>
-          </div>
-        ))}
-        {unit.lessons.length === 0 && (
-            <div className="text-center py-12 text-slate-400 font-medium bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                No lessons added yet.
-            </div>
-        )}
+            )}
+
+            {unit.lessons.map((lesson) => (
+                <div key={lesson.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 transition group flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-slate-100 text-slate-500 rounded-xl group-hover:bg-indigo-50 group-hover:text-indigo-600 transition">
+                            <FileText size={20} />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-slate-800">{lesson.title}</h4>
+                            <div className="flex items-center gap-3 mt-1 text-xs font-bold text-slate-400">
+                                {lesson.videoUrl && (
+                                    <span className="flex items-center gap-1"><Video size={12} /> Video</span>
+                                )}
+                                <span className="flex items-center gap-1"><BrainCircuit size={12} /> {lesson.questions.length} Questions</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2">
+                         <Link 
+                            href={`/admin/courses/${courseId}/units/${unitId}/lessons/${lesson.id}?tab=theory`}
+                            className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 transition flex items-center gap-2"
+                         >
+                            <BookOpen size={14} /> Content
+                         </Link>
+                         <Link 
+                            href={`/admin/courses/${courseId}/units/${unitId}/lessons/${lesson.id}?tab=quiz`}
+                            className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-emerald-50 hover:text-emerald-600 transition flex items-center gap-2"
+                         >
+                            <BrainCircuit size={14} /> Quiz
+                         </Link>
+                    </div>
+                </div>
+            ))}
+        </div>
+
       </div>
     </div>
   );

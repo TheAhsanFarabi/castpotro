@@ -376,3 +376,21 @@ export async function deleteJob(jobId: string) {
   await prisma.job.delete({ where: { id: jobId } });
   revalidatePath("/admin/jobs");
 }
+
+// 👇 NEW: Update Lesson Action
+export async function updateLesson(
+  lessonId: string, 
+  data: { title: string; theory: string; videoUrl: string; path: string }
+) {
+  await prisma.lesson.update({
+    where: { id: lessonId },
+    data: {
+      title: data.title,
+      theory: data.theory, // This will be the long JSON string
+      videoUrl: data.videoUrl
+    }
+  });
+  
+  revalidatePath(data.path);
+  return { success: true };
+}

@@ -42,9 +42,13 @@ export async function getFullUserProfile() {
     // A course is "Certified" if user completed all lessons (simplified logic for now)
     // Or if progress > 90%
     const certificates = user.enrollments
-      .filter((e) => e.progress >= 90 || e.completedLessons.length > 0) // Logic depends on your progress calc
+      .filter((e) => e.progress >= 90 || e.completedLessons.length > 0)
       .map((e) => ({
         id: e.course.id,
+        
+        // 👇 CRITICAL FIX: ID for the database update
+        enrollmentId: e.id, 
+
         title: e.course.title,
         issuer: "Castpotro Academy",
         issueDate: new Date(e.createdAt).toLocaleDateString("en-US", {
@@ -52,8 +56,12 @@ export async function getFullUserProfile() {
           day: "numeric",
           year: "numeric",
         }),
-        // Generate a fake Credential ID hash
+        // Generate a fake Credential ID for display
         credentialId: `CP-${e.course.title.substring(0, 3).toUpperCase()}-${user.id.substring(0, 4)}-${Date.now().toString().substring(8)}`,
+        
+        // 👇 CRITICAL FIX: Hash for the UI state
+        txHash: e.certificateHash || null, 
+        
         skills: "Soft Skills, " + e.course.title,
       }));
 
@@ -78,7 +86,7 @@ export async function getFullUserProfile() {
         e.completedLessons.map((l) => ({
           id: l.id,
           type: "LESSON",
-          title: `Lesson Complete: ${e.course.title}`, // Ideally fetch lesson title too if included
+          title: `Lesson Complete: ${e.course.title}`,
           date: l.completedAt,
           xp: "+50 XP",
         })),
@@ -95,7 +103,7 @@ export async function getFullUserProfile() {
 
     return {
       user: {
-        id: user.id, // <--- FIXED: Added this line so the client can fetch streaks
+        id: user.id,
         name: user.name || "Learner",
         email: user.email,
         handle: user.name
@@ -157,6 +165,22 @@ export async function updateProfileDetails(
   await prisma.user.update({
     where: { id: userId },
     data: { name, bio, location },
+  });
+
+  revalidatePath("/dashboard/profile");
+  return { success: true };
+}
+
+// --- 4. SAVE CERTIFICATE HASH (Post-Mint) ---
+export async function saveCertHash(enrollmentId: string, hash: string) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+  if (!userId) return { success: false };
+
+  // Update DB
+  await prisma.enrollment.update({
+    where: { id: enrollmentId },
+    data: { certificateHash: hash }
   });
 
   revalidatePath("/dashboard/profile");
