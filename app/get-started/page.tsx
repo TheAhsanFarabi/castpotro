@@ -4,9 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Sparkles, Briefcase, Calendar, PlayCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getRecommendations, saveUserPlan } from '@/app/actions'; // Import saveUserPlan
+import { getRecommendations, saveUserPlan } from '@/app/actions'; 
 
-// --- PREDEFINED OPTIONS ---
 const INTERESTS = [
   { id: "AI", label: "Artificial Intelligence", emoji: "🤖" },
   { id: "Business", label: "Entrepreneurship", emoji: "🚀" },
@@ -29,7 +28,6 @@ export default function GetStartedPage() {
   const [selectedGoal, setSelectedGoal] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // Store the fetched data here
   const [recommendations, setRecommendations] = useState<any>(null);
 
   const toggleInterest = (id: string) => {
@@ -39,58 +37,48 @@ export default function GetStartedPage() {
   };
 
   const handleFinishTest = async () => {
-    setStep(3); // Loading screen
+    setStep(3); 
     setIsLoading(true);
 
     try {
-      // 1. Server Call to get suggestions
       const data = await getRecommendations(selectedInterests);
-      
-      // 2. Simulate "AI Thinking" delay (optional, for effect)
       setTimeout(() => {
         setRecommendations(data);
-        setStep(4); // Results screen
+        setStep(4); 
         setIsLoading(false);
       }, 1500);
 
     } catch (error) {
       console.error("Failed to get recommendations", error);
-      // Fallback
       setStep(4);
       setIsLoading(false);
     }
   };
 
-  // --- NEW HANDLER: Save & Redirect ---
   const handleSaveAndExit = async () => {
     if (!recommendations) return;
-    
     setIsLoading(true);
-
     try {
-        // Extract IDs from the recommended courses
         const courseIds = recommendations.courses.map((c: any) => c.id);
-        
-        // Save to DB
         await saveUserPlan(courseIds);
-
-        // Redirect to dashboard
         router.push('/dashboard');
     } catch (error) {
         console.error("Failed to save", error);
-        // Even if save fails, let them in
         router.push('/dashboard');
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-4xl bg-white rounded-[3rem] shadow-2xl border-2 border-slate-100 min-h-[600px] overflow-hidden relative flex flex-col">
+    // Updated: Transparent background to show global layout blobs
+    <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+      
+      {/* Glassmorphic Card */}
+      <div className="w-full max-w-4xl bg-white/80 backdrop-blur-2xl rounded-[3rem] shadow-2xl border-2 border-white/50 min-h-[600px] overflow-hidden relative flex flex-col">
         
         {/* PROGRESS BAR */}
-        <div className="h-2 bg-slate-100 w-full">
+        <div className="h-2 bg-slate-100/50 w-full">
             <motion.div 
-                className="h-full bg-[#0ea5e9]"
+                className="h-full bg-gradient-to-r from-[#0ea5e9] to-pink-500"
                 initial={{ width: "0%" }}
                 animate={{ width: `${(step / 4) * 100}%` }}
             />
@@ -108,18 +96,20 @@ export default function GetStartedPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="w-full max-w-2xl"
               >
-                <h2 className="text-3xl font-black text-slate-800 mb-2">What sparks your curiosity?</h2>
-                <p className="text-slate-500 mb-8 font-medium">Select topics to personalize your feed.</p>
+                <h2 className="text-4xl font-black text-slate-800 mb-2">
+                  What sparks your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0ea5e9] to-pink-500">curiosity?</span>
+                </h2>
+                <p className="text-slate-500 mb-8 font-medium text-lg">Select topics to personalize your feed.</p>
                 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                     {INTERESTS.map((item) => (
                         <button
                             key={item.id}
                             onClick={() => toggleInterest(item.id)}
-                            className={`p-6 rounded-2xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                            className={`p-6 rounded-2xl border-2 transition-all duration-200 flex flex-col items-center gap-2 backdrop-blur-sm ${
                                 selectedInterests.includes(item.id) 
-                                ? 'border-[#0ea5e9] bg-sky-50 text-[#0ea5e9] shadow-lg shadow-sky-100 scale-105' 
-                                : 'border-slate-100 bg-white text-slate-600 hover:border-slate-200 hover:bg-slate-50'
+                                ? 'border-[#0ea5e9] bg-sky-50/80 text-[#0ea5e9] shadow-lg shadow-sky-100 scale-105' 
+                                : 'border-slate-100/60 bg-white/60 text-slate-600 hover:border-[#0ea5e9]/50 hover:bg-white'
                             }`}
                         >
                             <span className="text-4xl">{item.emoji}</span>
@@ -147,18 +137,20 @@ export default function GetStartedPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="w-full max-w-2xl"
               >
-                <h2 className="text-3xl font-black text-slate-800 mb-2">What is your main goal?</h2>
-                <p className="text-slate-500 mb-8 font-medium">We'll tailor your learning path for this.</p>
+                <h2 className="text-4xl font-black text-slate-800 mb-2">
+                  What is your main <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-[#0ea5e9]">goal?</span>
+                </h2>
+                <p className="text-slate-500 mb-8 font-medium text-lg">We'll tailor your learning path for this.</p>
                 
                 <div className="space-y-4 mb-8">
                     {GOALS.map((goal) => (
                         <button
                             key={goal.id}
                             onClick={() => setSelectedGoal(goal.id)}
-                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-200 text-left flex items-center justify-between group ${
+                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-200 text-left flex items-center justify-between group backdrop-blur-sm ${
                                 selectedGoal === goal.id
-                                ? 'border-[#0ea5e9] bg-sky-50 ring-2 ring-[#0ea5e9] ring-offset-2' 
-                                : 'border-slate-100 bg-white hover:border-sky-200 hover:bg-slate-50'
+                                ? 'border-[#0ea5e9] bg-sky-50/90 ring-2 ring-[#0ea5e9] ring-offset-2' 
+                                : 'border-slate-100/60 bg-white/60 hover:border-pink-300 hover:bg-white'
                             }`}
                         >
                             <div>
@@ -192,7 +184,6 @@ export default function GetStartedPage() {
                  className="flex flex-col items-center"
                >
                    <div className="w-48 h-48 mb-6 relative">
-                       {/* 3D ROBOT IMAGE */}
                        <motion.img 
                            src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Robot.png"
                            className="w-full h-full object-contain drop-shadow-2xl"
@@ -221,21 +212,20 @@ export default function GetStartedPage() {
                 >
                     <div className="flex justify-between items-end mb-6">
                         <div>
-                            <h2 className="text-2xl font-black text-slate-800">Your Personal Plan</h2>
+                            <h2 className="text-3xl font-black text-slate-800">Your Personal Plan</h2>
                             <p className="text-slate-500 font-medium">Based on your interest in <span className="text-[#0ea5e9] font-bold">{selectedInterests.join(", ")}</span>.</p>
                         </div>
-                        {/* Use the new handler here as well for the skip button, or keep it as redirect */}
                         <button onClick={handleSaveAndExit} className="text-sm font-bold text-slate-400 hover:text-[#0ea5e9] underline">Skip to Dashboard</button>
                     </div>
 
                     <div className="grid lg:grid-cols-3 gap-6 h-[400px] overflow-y-auto custom-scrollbar pr-2">
                         
-                        {/* COLUMN 1: COURSES */}
+                        {/* COURSES */}
                         <div className="space-y-4">
                             <h3 className="font-bold text-slate-400 text-xs uppercase tracking-wider flex items-center gap-2"><PlayCircle size={14} /> Recommended Courses</h3>
                             {recommendations.courses.length > 0 ? (
                                 recommendations.courses.map((c: any) => (
-                                    <div key={c.id} className="bg-white p-4 rounded-2xl border-2 border-slate-100 hover:border-[#0ea5e9] transition-all cursor-pointer group shadow-sm">
+                                    <div key={c.id} className="bg-white/60 p-4 rounded-2xl border-2 border-slate-100 hover:border-[#0ea5e9] hover:bg-white transition-all cursor-pointer group shadow-sm backdrop-blur-sm">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="bg-sky-50 text-[#0ea5e9] p-2 rounded-lg group-hover:bg-[#0ea5e9] group-hover:text-white transition-colors">
                                                 <PlayCircle size={20} />
@@ -246,30 +236,30 @@ export default function GetStartedPage() {
                                     </div>
                                 ))
                             ) : (
-                                <div className="p-4 border-2 border-dashed border-slate-200 rounded-xl text-center text-slate-400 text-xs font-bold">No exact matches found. Try "Business" or "AI".</div>
+                                <div className="p-4 border-2 border-dashed border-slate-200 rounded-xl text-center text-slate-400 text-xs font-bold">No exact matches found.</div>
                             )}
                         </div>
 
-                        {/* COLUMN 2: JOBS */}
+                        {/* JOBS */}
                         <div className="space-y-4">
                             <h3 className="font-bold text-slate-400 text-xs uppercase tracking-wider flex items-center gap-2"><Briefcase size={14} /> Career Opportunities</h3>
                             {recommendations.jobs.map((j: any) => (
-                                <div key={j.id} className="bg-white p-4 rounded-2xl border-2 border-slate-100 hover:border-purple-200 hover:shadow-purple-50 transition-all cursor-pointer group shadow-sm">
+                                <div key={j.id} className="bg-white/60 p-4 rounded-2xl border-2 border-slate-100 hover:border-pink-300 hover:bg-white hover:shadow-pink-50 transition-all cursor-pointer group shadow-sm backdrop-blur-sm">
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className="bg-purple-50 text-purple-600 px-2 py-1 rounded-md text-[10px] font-bold uppercase">{j.type}</span>
+                                        <span className="bg-pink-50 text-pink-600 px-2 py-1 rounded-md text-[10px] font-bold uppercase">{j.type}</span>
                                         <span className="text-xs font-bold text-slate-400">{j.salary}</span>
                                     </div>
-                                    <h4 className="font-bold text-slate-800 text-sm group-hover:text-purple-600">{j.role}</h4>
+                                    <h4 className="font-bold text-slate-800 text-sm group-hover:text-pink-600">{j.role}</h4>
                                     <p className="text-xs text-slate-500 mt-0.5">{j.company} • {j.location}</p>
                                 </div>
                             ))}
                         </div>
 
-                        {/* COLUMN 3: EVENTS */}
+                        {/* EVENTS */}
                         <div className="space-y-4">
                             <h3 className="font-bold text-slate-400 text-xs uppercase tracking-wider flex items-center gap-2"><Calendar size={14} /> Upcoming Events</h3>
                             {recommendations.events.map((e: any) => (
-                                <div key={e.id} className="bg-white p-4 rounded-2xl border-2 border-slate-100 hover:border-orange-200 hover:shadow-orange-50 transition-all cursor-pointer group shadow-sm">
+                                <div key={e.id} className="bg-white/60 p-4 rounded-2xl border-2 border-slate-100 hover:border-orange-200 hover:bg-white hover:shadow-orange-50 transition-all cursor-pointer group shadow-sm backdrop-blur-sm">
                                     <div className="flex gap-3 items-center">
                                         <div className="bg-orange-50 text-orange-500 p-2 rounded-xl text-center min-w-[50px]">
                                             <div className="text-[10px] font-bold uppercase">{new Date(e.date).toLocaleString('default', { month: 'short' })}</div>
@@ -288,7 +278,7 @@ export default function GetStartedPage() {
                     <button 
                         onClick={handleSaveAndExit}
                         disabled={isLoading}
-                        className="w-full mt-6 py-4 bg-[#0ea5e9] text-white rounded-2xl font-extrabold text-lg shadow-xl shadow-sky-200 hover:bg-sky-600 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full mt-6 py-4 bg-gradient-to-r from-[#0ea5e9] to-pink-500 text-white rounded-2xl font-extrabold text-lg shadow-xl shadow-sky-200 hover:shadow-pink-200 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         {isLoading ? (
                             <>

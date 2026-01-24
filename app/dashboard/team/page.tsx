@@ -12,7 +12,7 @@ const teamMembers = [
 
 export default function TeamPage() {
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-8 pb-20">
+    <div className="w-full max-w-7xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="text-center mb-16 space-y-4">
         <h1 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight">
@@ -56,6 +56,9 @@ export default function TeamPage() {
           </div>
         ))}
       </div>
+
+      {/* Explicit Bottom Spacer to guarantee scroll space */}
+      <div className="h-64 w-full" aria-hidden="true" />
     </div>
   );
 }

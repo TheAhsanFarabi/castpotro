@@ -8,8 +8,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-transparent overflow-x-hidden relative">
       
-      {/* HEADER */}
-      <header className="w-full p-6 flex justify-between items-center max-w-[1200px] mx-auto z-50 sticky top-0 bg-white/70 backdrop-blur-md rounded-b-2xl border-b border-white/20">
+      {/* HEADER: Frosted */}
+      <header className="w-full p-6 flex justify-between items-center max-w-[1200px] mx-auto z-50 sticky top-0 bg-white/60 backdrop-blur-xl rounded-b-3xl border-b border-white/40 shadow-sm">
         <div className="flex items-center cursor-pointer">
             <Image 
               src="/icon.png" 
@@ -19,7 +19,7 @@ export default function LandingPage() {
               className="object-contain"
             />
         </div>
-        <div className="hidden md:flex items-center gap-2 text-slate-400 font-bold uppercase tracking-wider text-sm cursor-pointer hover:text-[#0ea5e9] transition-colors">
+        <div className="hidden md:flex items-center gap-2 text-slate-500 font-bold uppercase tracking-wider text-sm cursor-pointer hover:text-[#0ea5e9] transition-colors">
           Language: English <ChevronDown size={16} />
         </div>
       </header>
@@ -38,7 +38,7 @@ export default function LandingPage() {
               <button className="btn-primary w-full py-4 text-lg shadow-xl shadow-sky-100 hover:scale-[1.02] active:scale-95 transition-all">Get Started</button>
             </Link>
             <Link href="/login" className="w-full sm:w-auto flex-1">
-              <button className="btn-outline w-full py-4 text-lg hover:bg-slate-50 transition-colors">I have an account</button>
+              <button className="btn-outline w-full py-4 text-lg hover:bg-white/60 transition-colors backdrop-blur-sm">I have an account</button>
             </Link>
           </div>
           <div className="flex items-center gap-4 text-sm font-bold text-slate-400 pt-2">
@@ -52,17 +52,17 @@ export default function LandingPage() {
         </div>
         <div className="relative w-[320px] h-[320px] lg:w-[500px] lg:h-[500px] order-1 lg:order-2">
            <Image src="/hero.png" alt="Learning Hero" fill className="object-contain drop-shadow-2xl animate-pulse" priority />
-           <div className="absolute top-10 right-0 bg-white p-3 rounded-2xl shadow-lg animate-bounce duration-[3000ms] hidden lg:block">
+           <div className="absolute top-10 right-0 bg-white/80 backdrop-blur-md p-3 rounded-2xl shadow-lg animate-bounce duration-[3000ms] hidden lg:block border border-white/50">
               <Star className="text-yellow-400" size={32} fill="currentColor" />
            </div>
-           <div className="absolute bottom-20 left-0 bg-white p-3 rounded-2xl shadow-lg animate-bounce duration-[4000ms] hidden lg:block">
+           <div className="absolute bottom-20 left-0 bg-white/80 backdrop-blur-md p-3 rounded-2xl shadow-lg animate-bounce duration-[4000ms] hidden lg:block border border-white/50">
               <Trophy className="text-[#0ea5e9]" size={32} fill="currentColor" />
            </div>
         </div>
       </main>
 
-      {/* STATS SECTION */}
-      <section className="w-full bg-slate-900/95 backdrop-blur py-12 text-white border-y-8 border-[#0ea5e9] relative z-10">
+      {/* STATS SECTION: Glassmorphic Dark */}
+      <section className="w-full bg-slate-900/90 backdrop-blur-xl py-12 text-white border-y-8 border-[#0ea5e9] relative z-10">
          <div className="max-w-[1000px] mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="space-y-1"><h3 className="text-4xl font-black text-sky-400">100%</h3><p className="font-bold text-slate-300 uppercase tracking-widest text-sm">Free Forever</p></div>
             <div className="space-y-1"><h3 className="text-4xl font-black text-pink-400">50+</h3><p className="font-bold text-slate-300 uppercase tracking-widest text-sm">Interactive Courses</p></div>
@@ -84,7 +84,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="w-full bg-white/60 backdrop-blur-lg py-10 border-t-2 border-slate-100 text-center relative z-10">
+      <footer className="w-full bg-white/50 backdrop-blur-xl py-10 border-t-2 border-white/40 text-center relative z-10">
          <div className="flex items-center justify-center gap-2 mb-4 opacity-50 grayscale hover:grayscale-0 transition-all cursor-pointer">
             <Image src="/icon.png" alt="Logo" width={40} height={40} />
             <span className="text-xl font-extrabold text-slate-400">castpotro</span>
@@ -97,8 +97,8 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, desc }: { icon: any, title: string, desc: string }) {
    return (
-      <div className="border-2 border-slate-100 rounded-3xl p-8 hover:border-sky-200 hover:shadow-xl hover:-translate-y-1 transition-all bg-white/80 backdrop-blur group">
-         <div className="mb-6 p-3 bg-slate-50 rounded-2xl inline-block group-hover:bg-white transition-colors">{icon}</div>
+      <div className="border-2 border-slate-100/60 rounded-3xl p-8 hover:border-sky-200 hover:shadow-xl hover:-translate-y-1 transition-all bg-white/70 backdrop-blur-md group">
+         <div className="mb-6 p-3 bg-white/50 rounded-2xl inline-block group-hover:bg-white transition-colors shadow-sm">{icon}</div>
          <h3 className="text-xl font-extrabold text-slate-700 mb-3">{title}</h3>
          <p className="text-slate-500 font-medium leading-relaxed">{desc}</p>
       </div>

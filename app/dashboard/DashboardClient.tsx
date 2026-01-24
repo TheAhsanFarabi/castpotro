@@ -12,8 +12,8 @@ import StreakWidget from "@/app/components/StreakWidget";
 // --- Lesson Node Component ---
 const LessonNode = ({ status, icon, offset, courseId, lessonId }: any) => {
   const getStyles = () => {
-    if (status === "completed") return "bg-pink-500 border-pink-600 text-white shadow-lg shadow-pink-200"; // Pink for done
-    if (status === "active") return "bg-[#0ea5e9] border-[#0284c7] text-white shadow-lg shadow-sky-200"; // Blue for active
+    if (status === "completed") return "bg-pink-500 border-pink-600 text-white shadow-lg shadow-pink-200";
+    if (status === "active") return "bg-[#0ea5e9] border-[#0284c7] text-white shadow-lg shadow-sky-200";
     return "bg-slate-200 border-slate-300 text-slate-400";
   };
   const href = status !== "locked" && courseId && lessonId ? `/dashboard/learn/${courseId}/${lessonId}` : "#";
@@ -72,12 +72,14 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
 
   return (
     <div className="flex w-full max-w-[1920px] mx-auto">
-      {/* --- CENTER CONTENT --- */}
-      <div className="flex-1 overflow-y-auto bg-white/40 backdrop-blur-sm relative scroll-smooth border-r border-slate-200/60 min-w-0">
-        <div className="flex justify-between items-center sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-6 lg:px-8 py-4 mb-6">
+      {/* --- CENTER CONTENT: Increased Glass Transparency (bg-white/30) --- */}
+      <div className="flex-1 overflow-y-auto bg-white/30 backdrop-blur-xl relative scroll-smooth border-r border-white/40 min-w-0">
+        
+        {/* HEADER: More transparent (bg-white/60) */}
+        <div className="flex justify-between items-center sticky top-0 z-40 bg-white/60 backdrop-blur-xl border-b border-white/40 px-6 lg:px-8 py-4 mb-6 transition-all">
           <div className="flex items-center gap-3">
             {selectedCourse ? (
-              <Link href="/dashboard" className="p-2 hover:bg-slate-100 rounded-xl transition text-slate-400 hover:text-slate-600">
+              <Link href="/dashboard" className="p-2 hover:bg-white/50 rounded-xl transition text-slate-500 hover:text-slate-700">
                 <ArrowLeft size={24} />
               </Link>
             ) : null}
@@ -85,20 +87,19 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
               <div className="text-[#0ea5e9] bg-sky-100 p-2 rounded-lg shrink-0"><Hexagon size={28} /></div>
               <div className="min-w-0">
                 <h1 className="font-extrabold text-slate-700 text-xl hidden sm:block truncate">{selectedCourse ? selectedCourse.title : "My Learning Path"}</h1>
-                {!selectedCourse && <p className="text-slate-400 text-xs font-bold uppercase tracking-wider truncate">Select a course</p>}
+                {!selectedCourse && <p className="text-slate-500 text-xs font-bold uppercase tracking-wider truncate">Select a course</p>}
               </div>
             </div>
           </div>
 
           <div className="flex gap-2 sm:gap-4 shrink-0">
-            <div className="flex items-center gap-2 text-yellow-600 font-bold bg-yellow-50/80 px-3 py-1.5 rounded-xl border border-yellow-100">
+            <div className="flex items-center gap-2 text-yellow-600 font-bold bg-yellow-50/80 px-3 py-1.5 rounded-xl border border-yellow-100 backdrop-blur-sm">
               <Coins fill="#ca8a04" size={20} /> {coins}
             </div>
-            {/* XP Widget: Blue */}
-            <div className="flex items-center gap-2 text-[#0ea5e9] font-bold bg-sky-50/80 px-3 py-1.5 rounded-xl border border-sky-100">
+            <div className="flex items-center gap-2 text-[#0ea5e9] font-bold bg-sky-50/80 px-3 py-1.5 rounded-xl border border-sky-100 backdrop-blur-sm">
               <Star fill="#0ea5e9" size={20} /> {user.xp}
             </div>
-            <div className="flex items-center gap-2 text-orange-500 font-bold bg-orange-50/80 px-3 py-1.5 rounded-xl border border-orange-100">
+            <div className="flex items-center gap-2 text-orange-500 font-bold bg-orange-50/80 px-3 py-1.5 rounded-xl border border-orange-100 backdrop-blur-sm">
               <Flame fill="#f97316" size={20} /> {streakData.streak}
             </div>
           </div>
@@ -136,7 +137,7 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
                 })}
             </div>
           ) : (
-            // VIEW 2: Course Grid
+            // VIEW 2: Course Grid (Frosted Cards)
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
               {courses.map((course) => {
                 const isEnrolled = myCourses.includes(course.id);
@@ -146,7 +147,7 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
                 const progressPercent = totalLessons > 0 ? Math.min(Math.round((completedCount / totalLessons) * 100), 100) : 0;
 
                 return (
-                  <div key={course.id} onClick={() => handleCourseClick(course.id)} className={`group border-2 rounded-3xl p-6 cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden h-full flex flex-col justify-between min-h-[260px] ${isEnrolled ? "bg-white border-slate-200 hover:border-sky-300" : "bg-white/80 border-slate-200 hover:border-pink-300"}`}>
+                  <div key={course.id} onClick={() => handleCourseClick(course.id)} className={`group border-2 rounded-3xl p-6 cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden h-full flex flex-col justify-between min-h-[260px] backdrop-blur-md ${isEnrolled ? "bg-white/80 border-slate-200 hover:border-sky-300" : "bg-white/60 border-slate-200 hover:border-pink-300"}`}>
                     <div>
                       <div className="flex items-start justify-between mb-6">
                         <div className={`p-4 rounded-2xl text-white shadow-md transition-colors ${isEnrolled ? "bg-[#0ea5e9]" : "bg-slate-400 group-hover:bg-pink-500"}`}><Briefcase size={32} /></div>
@@ -179,7 +180,7 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
       {/* --- ENROLL MODAL --- */}
       {enrollModal.isOpen && courseToEnroll && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white/90 backdrop-blur-xl w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200 border border-white/50">
             <button onClick={() => setEnrollModal({ isOpen: false, courseId: null })} className="absolute top-4 right-4 p-2 bg-slate-100 text-slate-400 rounded-full hover:bg-slate-200 transition z-20"><X size={20} /></button>
             <div className="p-8 text-center flex flex-col items-center">
               {enrollStatus === "success" ? (
@@ -203,14 +204,14 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
         </div>
       )}
 
-      {/* --- RIGHT SIDEBAR --- */}
-      <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-white/50 backdrop-blur-md p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-200/60">
+      {/* --- RIGHT SIDEBAR: Frosted --- */}
+      <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-white/40 backdrop-blur-xl p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-white/40">
         <StreakWidget streak={streakData.streak} weekActivity={streakData.weekActivity} coins={coins} />
 
-        <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white/90 shadow-sm">
+        <div className="border-2 border-slate-200/60 rounded-2xl p-5 bg-white/70 backdrop-blur-sm shadow-sm">
           <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2"><Trophy size={20} className="text-yellow-500" /> Weekly Ranking</h3>
           <p className="text-slate-500 text-xs mb-4 font-medium">You're in the <span className="text-yellow-500 font-bold">Gold League</span>!</p>
-          <div className="flex items-center gap-3 p-2 bg-yellow-50 rounded-xl border border-yellow-100 mb-3">
+          <div className="flex items-center gap-3 p-2 bg-yellow-50/80 rounded-xl border border-yellow-100 mb-3">
             <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center font-bold text-yellow-700 text-sm">1</div>
             <div className="flex-1 font-bold text-slate-700 text-sm">Sarah J.</div>
             <div className="font-bold text-slate-400 text-xs">2400 XP</div>

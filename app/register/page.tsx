@@ -3,7 +3,6 @@ import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image'; 
 import { useRouter } from 'next/navigation';
-import { Suspense } from 'react';
 import { registerAction } from '../actions';
 import confetti from 'canvas-confetti';
 import { ArrowLeft, Loader2 } from 'lucide-react'; 
@@ -17,7 +16,6 @@ const initialState = {
 // --- TYPEWRITER COMPONENT ---
 const Typewriter = ({ text, speed = 100, delay = 2000 }: { text: string[], speed?: number, delay?: number }) => {
   const [currentText, setCurrentText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [loopNum, setLoopNum] = useState(0);
   const [typingSpeed, setTypingSpeed] = useState(speed);
@@ -55,7 +53,9 @@ const Typewriter = ({ text, speed = 100, delay = 2000 }: { text: string[], speed
   );
 };
 
-function RegisterForm() {
+// --- MAIN REGISTER PAGE COMPONENT ---
+// Exporting directly as default function to avoid "not a React Component" errors
+export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(registerAction, initialState);
   const router = useRouter();
 
@@ -152,7 +152,7 @@ function RegisterForm() {
           </p>
       </div>
 
-      {/* --- RIGHT: ROBOT MASCOT RESTORED --- */}
+      {/* --- RIGHT: ROBOT MASCOT --- */}
       <div className="hidden lg:flex flex-col items-center justify-center relative">
           
           {/* Speech Bubble */}
@@ -179,7 +179,7 @@ function RegisterForm() {
               <div className="absolute -bottom-3 left-0 w-6 h-6 bg-white border-b-2 border-l-2 border-slate-100 transform -rotate-45"></div>
           </motion.div>
 
-          {/* THE ROBOT IS BACK */}
+          {/* THE ROBOT */}
           <motion.div 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: [0, -20, 0], opacity: 1 }}
@@ -206,13 +206,5 @@ function RegisterForm() {
       </div>
 
     </div>
-  );
-}
-
-export default function RegisterPage() {
-  return (
-    <Suspense>
-      <RegisterForm />
-    </Suspense>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link"; // Added Link import
 import {
   Zap,
   Flame,
@@ -37,7 +38,7 @@ import {
 } from "@/app/actions/profile";
 import { getUserStreak } from "@/app/actions/quests"; 
 import StreakWidget from "@/app/components/StreakWidget"; 
-import MintCertificateButton from "@/app/components/MintCertificateButton"; // <--- NEW IMPORT
+import MintCertificateButton from "@/app/components/MintCertificateButton";
 
 // --- Types ---
 type AvatarData = { color: string; shape: string; icon: string };
@@ -543,17 +544,28 @@ function ProfileContent() {
 
       <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-slate-50/50 p-8 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-8 shrink-0 border-l-2 border-slate-100">
         <StreakWidget streak={streakData.streak} weekActivity={streakData.weekActivity} />
-        <div className="bg-sky-50 border-2 border-sky-100 rounded-3xl p-6 text-center relative overflow-hidden group hover:shadow-xl hover:shadow-sky-100 transition-all duration-300">
-          <div className="relative z-10">
-            <div className="w-16 h-16 bg-white rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">🎁</div>
-            <h3 className="font-black text-[#0ea5e9] text-lg mb-2">Invite Friends</h3>
-            <p className="text-sky-800 text-sm font-medium mb-6 leading-relaxed">Get 1 week of Premium membership for every friend who joins using your link!</p>
-            <button className="w-full py-3 bg-[#0ea5e9] text-white rounded-xl font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-sky-200 hover:bg-sky-600 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2">
-              <Share2 size={18} /> Copy Link
-            </button>
+        
+        {/* --- REPLACED: Invite Friends -> Castpotro Plus Promo --- */}
+        <Link href="/dashboard/plus">
+          <div className="bg-gradient-to-br from-[#0ea5e9] to-pink-500 rounded-3xl p-6 text-center relative overflow-hidden group hover:shadow-xl hover:shadow-pink-200 transition-all duration-300 cursor-pointer">
+            <div className="relative z-10 text-white">
+              <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300">
+                <Crown size={32} fill="currentColor" className="text-yellow-300" />
+              </div>
+              <h3 className="font-black text-white text-lg mb-2">Castpotro Plus</h3>
+              <p className="text-white/90 text-sm font-medium mb-6 leading-relaxed">
+                Unlock unlimited hearts, double XP, and exclusive badges.
+              </p>
+              <button className="w-full py-3 bg-white text-[#0ea5e9] rounded-xl font-extrabold text-sm uppercase tracking-wider shadow-lg hover:scale-105 active:scale-95 transition-all duration-300">
+                Upgrade Now
+              </button>
+            </div>
+            <div className="absolute -bottom-10 -right-10 opacity-20 rotate-12 text-white transition-transform duration-700 group-hover:rotate-45 group-hover:scale-110">
+              <Sparkles size={150} />
+            </div>
           </div>
-          <div className="absolute -bottom-10 -right-10 opacity-10 rotate-12 text-[#0ea5e9] transition-transform duration-700 group-hover:rotate-45 group-hover:scale-110"><Gift size={150} /></div>
-        </div>
+        </Link>
+
         <div className="border-2 border-slate-200 rounded-3xl p-6 bg-white shadow-sm hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-700">Following</h3>
