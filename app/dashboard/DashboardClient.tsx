@@ -1,3 +1,4 @@
+// app/dashboard/DashboardClient.tsx
 "use client";
 import {
   Flame,
@@ -188,12 +189,19 @@ export default function DashboardClient({
           </div>
 
           <div className="flex gap-2 sm:gap-4 shrink-0">
-            <div className="flex items-center gap-2 text-amber-500 font-bold bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-100">
-              <Flame fill="#f59e0b" size={20} />{" "}
-              {user.xp > 0 ? Math.floor(user.xp / 100) : 1}
+            {/* 1. COINS */}
+            <div className="flex items-center gap-2 text-yellow-600 font-bold bg-yellow-50 px-3 py-1.5 rounded-xl border border-yellow-100">
+              <Coins fill="#ca8a04" size={20} /> {coins}
             </div>
-            <div className="flex items-center gap-2 text-[#0ea5e9] font-bold bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-100">
-              <Star fill="#0ea5e9" size={20} /> {coins}
+
+            {/* 2. XP */}
+            <div className="flex items-center gap-2 text-sky-600 font-bold bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-100">
+              <Star fill="#0284c7" size={20} /> {user.xp}
+            </div>
+
+            {/* 3. STREAK */}
+            <div className="flex items-center gap-2 text-orange-500 font-bold bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
+              <Flame fill="#f97316" size={20} /> {streakData.streak}
             </div>
           </div>
         </div>
@@ -479,6 +487,7 @@ export default function DashboardClient({
         <StreakWidget
           streak={streakData.streak}
           weekActivity={streakData.weekActivity}
+          coins={coins} // Pass the coins state here
         />
 
         <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white shadow-sm">

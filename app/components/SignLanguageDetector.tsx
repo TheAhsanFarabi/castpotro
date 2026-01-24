@@ -218,7 +218,7 @@ export default function SignLanguageDetector() {
       </div>
 
       <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-4">
-        Powered by MediaPipe & Gemini
+        Powered by Castpotro
       </p>
     </div>
   );
