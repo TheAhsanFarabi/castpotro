@@ -259,3 +259,120 @@ export async function updateAdminProfile(formData: FormData) {
   });
   revalidatePath("/admin/settings");
 }
+
+// finish event
+export async function finishEvent(eventId: string) {
+  try {
+    // 1. Fetch the event to check the date
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { date: true },
+    });
+
+    if (!event) {
+      return { success: false, message: "Event not found" };
+    }
+
+    // 2. Prevent finishing if the event hasn't started yet
+    if (new Date() < event.date) {
+      return {
+        success: false,
+        message: "Cannot finish an event before it starts.",
+      };
+    }
+
+    // 3. Update status
+    await prisma.event.update({
+      where: { id: eventId },
+      data: { status: "COMPLETED" },
+    });
+
+    revalidatePath("/admin/events");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to finish event:", error);
+    return { success: false, message: "Error updating event" };
+  }
+}
+
+// --- JOB MANAGEMENT ---
+
+export async function createJob(formData: FormData) {
+  const role = formData.get("role") as string;
+  const company = formData.get("company") as string;
+  const location = formData.get("location") as string;
+  const salary = formData.get("salary") as string;
+  const type = formData.get("type") as string; // "Full-Time" or "Internship"
+
+  // Optional: Link a course requirement
+  const requiredCourseRaw = formData.get("requiredCourse") as string;
+  const requiredCourse =
+    requiredCourseRaw && requiredCourseRaw !== "none"
+      ? requiredCourseRaw
+      : null;
+
+  // Checkbox handling (returns "on" if checked, null otherwise)
+  const isPromoted = formData.get("isPromoted") === "on";
+
+  await prisma.job.create({
+    data: {
+      role,
+      company,
+      location,
+      salary,
+      type,
+      requiredCourse,
+      isPromoted,
+      isOpen: true, // Default to open
+    },
+  });
+
+  revalidatePath("/admin/jobs");
+  redirect("/admin/jobs");
+}
+
+export async function updateJob(jobId: string, formData: FormData) {
+  const role = formData.get("role") as string;
+  const company = formData.get("company") as string;
+  const location = formData.get("location") as string;
+  const salary = formData.get("salary") as string;
+  const type = formData.get("type") as string;
+
+  const requiredCourseRaw = formData.get("requiredCourse") as string;
+  const requiredCourse =
+    requiredCourseRaw && requiredCourseRaw !== "none"
+      ? requiredCourseRaw
+      : null;
+
+  const isPromoted = formData.get("isPromoted") === "on";
+
+  await prisma.job.update({
+    where: { id: jobId },
+    data: {
+      role,
+      company,
+      location,
+      salary,
+      type,
+      requiredCourse,
+      isPromoted,
+    },
+  });
+
+  revalidatePath("/admin/jobs");
+  revalidatePath(`/admin/jobs/${jobId}`);
+  redirect("/admin/jobs");
+}
+
+export async function toggleJobStatus(jobId: string, isOpen: boolean) {
+  await prisma.job.update({
+    where: { id: jobId },
+    data: { isOpen },
+  });
+  revalidatePath("/admin/jobs");
+}
+
+export async function deleteJob(jobId: string) {
+  await prisma.job.delete({ where: { id: jobId } });
+  revalidatePath("/admin/jobs");
+}
