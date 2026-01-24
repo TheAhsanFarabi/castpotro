@@ -1,21 +1,21 @@
 "use client";
 import Link from "next/link";
-import { Zap, Loader2 } from "lucide-react";
-import { useActionState, useEffect } from "react"; // Added useEffect
-import { useRouter } from "next/navigation";      // Added useRouter
+import Image from "next/image"; // Import Image
+import { Loader2 } from "lucide-react"; // Removed Zap
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { loginAction } from "../actions";
 
 const initialState = {
   message: '',
-  success: false,       // Added to track success state
-  redirectUrl: ''       // Added to track where to go
+  success: false,
+  redirectUrl: ''
 };
 
 export default function LoginPage() {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(loginAction, initialState);
 
-  // --- NEW: Handle Client-Side Redirect ---
   useEffect(() => {
     if (state?.success && state?.redirectUrl) {
       router.push(state.redirectUrl);
@@ -23,8 +23,8 @@ export default function LoginPage() {
   }, [state, router]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-6 bg-white relative">
-      <div className="w-full flex justify-end p-4 absolute top-0">
+    <div className="min-h-screen flex flex-col items-center p-6 bg-transparent relative">
+      <div className="w-full flex justify-end p-4 absolute top-0 z-20">
         <Link href="/register">
           <button className="btn-primary py-2 px-6 text-sm border-b-4">
             Sign Up
@@ -32,13 +32,21 @@ export default function LoginPage() {
         </Link>
       </div>
 
-      <div className="w-full flex justify-center mt-12 mb-8">
-         <Link href="/" className="text-3xl font-extrabold text-[#0ea5e9] tracking-tighter flex items-center gap-2">
-            <Zap size={24} fill="#0ea5e9" /> castpotro
+      <div className="w-full flex justify-center mt-8 mb-8 relative z-10">
+         <Link href="/" className="text-4xl font-extrabold text-[#0ea5e9] tracking-tighter flex items-center gap-4">
+            {/* Updated Logo: 70px */}
+            <Image 
+              src="/icon.png" 
+              alt="Castpotro Logo" 
+              width={70} 
+              height={70} 
+              className="object-contain"
+            />
+            castpotro
          </Link>
       </div>
 
-      <div className="w-full max-w-[375px] flex flex-col gap-6 text-center">
+      <div className="w-full max-w-[375px] flex flex-col gap-6 text-center relative z-10 bg-white/80 backdrop-blur-md p-8 rounded-[32px] border-2 border-slate-100 shadow-xl">
         <h2 className="text-2xl font-bold text-slate-700">Log in</h2>
         
         <form className="flex flex-col gap-4" action={formAction}>

@@ -12,8 +12,9 @@ export default function LandingPage() {
       {/* --- HEADER --- */}
       <header className="w-full p-6 flex justify-between items-center max-w-[1200px] mx-auto z-50 sticky top-0 bg-white/80 backdrop-blur-md">
         <div className="flex items-center cursor-pointer">
+            {/* Updated Logo: Bigger Size */}
             <Image 
-              src="/icon.svg" 
+              src="/icon.png" 
               alt="Castpotro Logo" 
               width={70} 
               height={70} 
