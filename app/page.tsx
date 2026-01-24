@@ -6,10 +6,11 @@ import {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-white overflow-x-hidden">
+    // Updated: bg-transparent + overflow-x-hidden
+    <div className="min-h-screen flex flex-col bg-transparent overflow-x-hidden relative">
       
-      {/* --- HEADER --- */}
-      <header className="w-full p-6 flex justify-between items-center max-w-[1200px] mx-auto z-50 sticky top-0 bg-white/80 backdrop-blur-md">
+      {/* HEADER */}
+      <header className="w-full p-6 flex justify-between items-center max-w-[1200px] mx-auto z-50 sticky top-0 bg-white/70 backdrop-blur-md rounded-b-2xl border-b border-white/20">
         <div className="flex items-center cursor-pointer gap-2">
             <div className="bg-violet-100 p-2 rounded-lg text-violet-600"><Zap size={24} fill="currentColor"/></div>
             <span className="text-2xl font-black text-slate-700 tracking-tighter">castpotro</span>
@@ -19,8 +20,8 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* --- HERO SECTION --- */}
-      <main className="flex flex-col lg:flex-row items-center justify-center gap-12 w-full max-w-[1200px] mx-auto px-6 mt-8 lg:mt-20 mb-20">
+      {/* HERO SECTION */}
+      <main className="flex flex-col lg:flex-row items-center justify-center gap-12 w-full max-w-[1200px] mx-auto px-6 mt-8 lg:mt-20 mb-20 relative z-10">
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-8 max-w-[500px] order-2 lg:order-1">
           <h1 className="text-4xl lg:text-[3.5rem] font-extrabold text-slate-800 leading-[1.1]">
             Master <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-pink-500">soft skills</span> the fun way.
@@ -56,8 +57,8 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* --- STATS SECTION --- */}
-      <section className="w-full bg-slate-900 py-12 text-white border-y-8 border-violet-600">
+      {/* STATS SECTION */}
+      <section className="w-full bg-slate-900/95 backdrop-blur py-12 text-white border-y-8 border-violet-600 relative z-10">
          <div className="max-w-[1000px] mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="space-y-1"><h3 className="text-4xl font-black text-violet-400">100%</h3><p className="font-bold text-slate-300 uppercase tracking-widest text-sm">Free Forever</p></div>
             <div className="space-y-1"><h3 className="text-4xl font-black text-pink-400">50+</h3><p className="font-bold text-slate-300 uppercase tracking-widest text-sm">Interactive Courses</p></div>
@@ -65,8 +66,8 @@ export default function LandingPage() {
          </div>
       </section>
 
-      {/* --- FEATURES GRID --- */}
-      <section className="py-20 px-6 max-w-[1200px] mx-auto w-full">
+      {/* FEATURES GRID */}
+      <section className="py-20 px-6 max-w-[1200px] mx-auto w-full relative z-10">
          <div className="text-center mb-16">
             <h2 className="text-3xl font-black text-slate-700 mb-4">Why learn with Castpotro?</h2>
             <p className="text-slate-500 font-medium text-lg max-w-2xl mx-auto">We replace boring lectures with fun, bite-sized challenges.</p>
@@ -78,8 +79,8 @@ export default function LandingPage() {
          </div>
       </section>
 
-      {/* --- FOOTER --- */}
-      <footer className="w-full bg-slate-50 py-10 border-t-2 border-slate-100 text-center">
+      {/* FOOTER */}
+      <footer className="w-full bg-white/60 backdrop-blur-lg py-10 border-t-2 border-slate-100 text-center relative z-10">
          <div className="flex items-center justify-center gap-2 mb-4 opacity-50 grayscale hover:grayscale-0 transition-all cursor-pointer">
             <div className="bg-violet-100 p-1 rounded"><Zap size={20} className="text-violet-600" fill="currentColor"/></div>
             <span className="text-xl font-extrabold text-slate-400">castpotro</span>
@@ -92,7 +93,7 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, desc }: { icon: any, title: string, desc: string }) {
    return (
-      <div className="border-2 border-slate-100 rounded-3xl p-8 hover:border-violet-200 hover:shadow-xl hover:-translate-y-1 transition-all bg-white group">
+      <div className="border-2 border-slate-100 rounded-3xl p-8 hover:border-violet-200 hover:shadow-xl hover:-translate-y-1 transition-all bg-white/80 backdrop-blur group">
          <div className="mb-6 p-3 bg-slate-50 rounded-2xl inline-block group-hover:bg-white transition-colors">{icon}</div>
          <h3 className="text-xl font-extrabold text-slate-700 mb-3">{title}</h3>
          <p className="text-slate-500 font-medium leading-relaxed">{desc}</p>

@@ -18,8 +18,8 @@ const NavItem = ({ icon, label, href }: { icon: any, label: string, href: string
       <div className={`
         flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition
         ${isActive 
-            ? 'bg-violet-50 text-violet-600 border-2 border-violet-200' 
-            : 'text-slate-400 hover:bg-slate-50 border-2 border-transparent'}
+            ? 'bg-violet-50 text-violet-600 border-2 border-violet-200 shadow-sm' 
+            : 'text-slate-400 hover:bg-white/50 hover:text-slate-600 border-2 border-transparent'}
       `}>
         {icon}
         <span className="hidden xl:block font-extrabold uppercase text-sm tracking-widest">{label}</span>
@@ -30,10 +30,11 @@ const NavItem = ({ icon, label, href }: { icon: any, label: string, href: string
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans text-slate-900">
+    // Updated: bg-transparent to show global background
+    <div className="min-h-screen bg-transparent flex flex-col md:flex-row font-sans text-slate-900">
       
-      {/* SIDEBAR NAVIGATION - Exact Original Dimensions */}
-      <nav className="w-full md:w-20 xl:w-[240px] 2xl:w-[300px] md:h-screen bg-white border-r-2 border-slate-100 fixed md:static bottom-0 z-50 px-4 md:px-3 xl:px-4 py-2 md:py-8 flex md:flex-col justify-between md:justify-start gap-2 md:gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:shadow-none shrink-0 transition-all duration-300">
+      {/* SIDEBAR - Kept semi-transparent glass effect */}
+      <nav className="w-full md:w-20 xl:w-[240px] 2xl:w-[300px] md:h-screen bg-white/80 backdrop-blur-xl border-r-2 border-slate-200/60 fixed md:static bottom-0 z-50 px-4 md:px-3 xl:px-4 py-2 md:py-8 flex md:flex-col justify-between md:justify-start gap-2 md:gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:shadow-none shrink-0 transition-all duration-300">
          <Link href="/" className="hidden md:flex items-center justify-center xl:justify-start gap-2 text-2xl font-extrabold tracking-tighter mb-8 px-0 xl:px-4 group">
            <div className="text-violet-600 bg-violet-100 p-1.5 rounded-lg group-hover:rotate-12 transition-transform">
              <Zap fill="currentColor" size={24} /> 
@@ -56,7 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
          </div>
 
-         <div className="md:mt-auto w-full pt-4 bg-white hidden md:block">
+         <div className="md:mt-auto w-full pt-4 hidden md:block border-t border-slate-100/50">
             <form action={logoutAction}>
                 <button className="flex items-center justify-center xl:justify-start gap-4 px-4 py-3 rounded-xl cursor-pointer transition text-slate-400 hover:bg-red-50 hover:text-red-500 w-full border-2 border-transparent hover:border-red-100">
                     <LogOut size={28} />
@@ -67,7 +68,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex justify-center overflow-y-auto h-screen bg-white relative min-w-0">
+      <main className="flex-1 flex justify-center overflow-y-auto h-screen relative min-w-0">
         {children}
       </main>
     </div>

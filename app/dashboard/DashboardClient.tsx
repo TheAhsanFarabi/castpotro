@@ -9,11 +9,11 @@ import { useState } from "react";
 import { createEnrollment } from "@/app/actions";
 import StreakWidget from "@/app/components/StreakWidget"; 
 
-// --- Lesson Node Component (Recolored) ---
+// --- Lesson Node Component ---
 const LessonNode = ({ status, icon, offset, courseId, lessonId }: any) => {
   const getStyles = () => {
-    if (status === "completed") return "bg-pink-500 border-pink-600 text-white"; // Pink for done
-    if (status === "active") return "bg-violet-500 border-violet-600 text-white"; // Violet for active
+    if (status === "completed") return "bg-pink-500 border-pink-600 text-white shadow-lg shadow-pink-200";
+    if (status === "active") return "bg-violet-500 border-violet-600 text-white shadow-lg shadow-violet-200";
     return "bg-slate-200 border-slate-300 text-slate-400";
   };
   const href = status !== "locked" && courseId && lessonId ? `/dashboard/learn/${courseId}/${lessonId}` : "#";
@@ -72,9 +72,9 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
 
   return (
     <div className="flex w-full max-w-[1920px] mx-auto">
-      {/* --- CENTER CONTENT --- */}
-      <div className="flex-1 overflow-y-auto bg-white relative scroll-smooth border-r border-slate-100 min-w-0">
-        <div className="flex justify-between items-center sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 lg:px-8 py-4 mb-6">
+      {/* --- CENTER CONTENT: Glassmorphic --- */}
+      <div className="flex-1 overflow-y-auto bg-white/40 backdrop-blur-sm relative scroll-smooth border-r border-slate-200/60 min-w-0">
+        <div className="flex justify-between items-center sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-6 lg:px-8 py-4 mb-6">
           <div className="flex items-center gap-3">
             {selectedCourse ? (
               <Link href="/dashboard" className="p-2 hover:bg-slate-100 rounded-xl transition text-slate-400 hover:text-slate-600">
@@ -91,13 +91,13 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
           </div>
 
           <div className="flex gap-2 sm:gap-4 shrink-0">
-            <div className="flex items-center gap-2 text-yellow-600 font-bold bg-yellow-50 px-3 py-1.5 rounded-xl border border-yellow-100">
+            <div className="flex items-center gap-2 text-yellow-600 font-bold bg-yellow-50/80 px-3 py-1.5 rounded-xl border border-yellow-100">
               <Coins fill="#ca8a04" size={20} /> {coins}
             </div>
-            <div className="flex items-center gap-2 text-violet-600 font-bold bg-violet-50 px-3 py-1.5 rounded-xl border border-violet-100">
+            <div className="flex items-center gap-2 text-violet-600 font-bold bg-violet-50/80 px-3 py-1.5 rounded-xl border border-violet-100">
               <Star fill="#7c3aed" size={20} /> {user.xp}
             </div>
-            <div className="flex items-center gap-2 text-orange-500 font-bold bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
+            <div className="flex items-center gap-2 text-orange-500 font-bold bg-orange-50/80 px-3 py-1.5 rounded-xl border border-orange-100">
               <Flame fill="#f97316" size={20} /> {streakData.streak}
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
                 const progressPercent = totalLessons > 0 ? Math.min(Math.round((completedCount / totalLessons) * 100), 100) : 0;
 
                 return (
-                  <div key={course.id} onClick={() => handleCourseClick(course.id)} className={`group border-2 rounded-3xl p-6 cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden h-full flex flex-col justify-between min-h-[260px] ${isEnrolled ? "bg-white border-slate-200 hover:border-violet-300" : "bg-slate-50 border-slate-200 hover:border-pink-300"}`}>
+                  <div key={course.id} onClick={() => handleCourseClick(course.id)} className={`group border-2 rounded-3xl p-6 cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden h-full flex flex-col justify-between min-h-[260px] ${isEnrolled ? "bg-white border-slate-200 hover:border-violet-300" : "bg-white/80 border-slate-200 hover:border-pink-300"}`}>
                     <div>
                       <div className="flex items-start justify-between mb-6">
                         <div className={`p-4 rounded-2xl text-white shadow-md transition-colors ${isEnrolled ? "bg-violet-500" : "bg-slate-400 group-hover:bg-pink-500"}`}><Briefcase size={32} /></div>
@@ -202,11 +202,11 @@ export default function DashboardClient({ user, courses, streakData }: { user: a
         </div>
       )}
 
-      {/* --- RIGHT SIDEBAR --- */}
-      <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-slate-50/50 p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-100">
+      {/* --- RIGHT SIDEBAR: Glassmorphic --- */}
+      <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-white/50 backdrop-blur-md p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-200/60">
         <StreakWidget streak={streakData.streak} weekActivity={streakData.weekActivity} coins={coins} />
 
-        <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
+        <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white/90 shadow-sm">
           <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2"><Trophy size={20} className="text-yellow-500" /> Weekly Ranking</h3>
           <p className="text-slate-500 text-xs mb-4 font-medium">You're in the <span className="text-yellow-500 font-bold">Gold League</span>!</p>
           <div className="flex items-center gap-3 p-2 bg-yellow-50 rounded-xl border border-yellow-100 mb-3">
