@@ -1,14 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getUserStreak } from "@/app/actions/quests"; // Import action
 import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
-  const userId = cookieStore.get('userId')?.value;
+  const userId = cookieStore.get("userId")?.value;
 
   if (!userId) {
-    redirect('/login');
+    redirect("/login");
   }
 
   // Fetch Current User & Enrollments with deep completion status
@@ -17,27 +18,32 @@ export default async function DashboardPage() {
     include: {
       enrollments: {
         include: {
-          completedLessons: true 
-        }
+          completedLessons: true,
+        },
       },
     },
   });
 
   if (!user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   // Fetch All Courses with Structure (Units and Lessons)
   const courses = await prisma.course.findMany({
     include: {
       units: {
-        orderBy: { order: 'asc' },
+        orderBy: { order: "asc" },
         include: {
-          lessons: true
-        }
-      }
-    }
+          lessons: true,
+        },
+      },
+    },
   });
 
-  return <DashboardClient user={user} courses={courses} />;
+  // Fetch Streak Data
+  const streakData = await getUserStreak(userId);
+
+  return (
+    <DashboardClient user={user} courses={courses} streakData={streakData} />
+  );
 }
