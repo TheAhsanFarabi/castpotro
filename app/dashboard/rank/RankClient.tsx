@@ -1,0 +1,340 @@
+"use client";
+
+import React, { useState } from "react";
+import {
+  Shield,
+  Zap,
+  ChevronUp,
+  ChevronDown,
+  Minus,
+  Crown,
+  Clock,
+  Sparkles,
+  Flame,
+  Target,
+  Star,
+  Trophy,
+} from "lucide-react";
+
+// ... (Keep UserAvatar, RankChangeIcon, and UserRow components exactly as they were) ...
+// (I will omit them here to save space, just copy them from your previous file)
+
+// --- Helpers (Paste these back in if you are replacing the whole file) ---
+const RankChangeIcon = ({ trend }: { trend: string }) => {
+  if (trend === "up") return <ChevronUp size={16} className="text-green-500" />;
+  if (trend === "down")
+    return <ChevronDown size={16} className="text-red-400" />;
+  return <Minus size={16} className="text-slate-300" />;
+};
+
+const UserAvatar = ({ name, rank }: { name: string; rank: number }) => {
+  const colors = [
+    "bg-yellow-100 text-yellow-700 border-yellow-200",
+    "bg-slate-100 text-slate-700 border-slate-200",
+    "bg-orange-100 text-orange-700 border-orange-200",
+    "bg-sky-50 text-sky-600 border-sky-100",
+  ];
+  const style = colors[rank - 1] || colors[3];
+
+  return (
+    <div
+      className={`w-full h-full rounded-full flex items-center justify-center font-bold text-lg md:text-xl border-2 ${style}`}
+    >
+      {name?.charAt(0).toUpperCase() || "U"}
+    </div>
+  );
+};
+
+const UserRow = ({
+  user,
+  rank,
+  isMe,
+}: {
+  user: any;
+  rank: number;
+  isMe: boolean;
+}) => {
+  let rankStyle = "bg-white border-slate-100 hover:border-slate-300";
+  let textStyle = "text-slate-500";
+  let avatarBorder = "border-slate-200";
+
+  if (rank === 1) {
+    rankStyle =
+      "bg-gradient-to-r from-yellow-50 to-white border-yellow-200 shadow-sm hover:border-yellow-300";
+    textStyle = "text-yellow-600 font-black";
+    avatarBorder = "border-yellow-400";
+  } else if (rank === 2) {
+    rankStyle = "bg-slate-50 border-slate-300 hover:border-slate-400";
+    textStyle = "text-slate-500 font-bold";
+    avatarBorder = "border-slate-400";
+  } else if (rank === 3) {
+    rankStyle = "bg-orange-50 border-orange-200 hover:border-orange-300";
+    textStyle = "text-orange-600 font-bold";
+    avatarBorder = "border-orange-400";
+  }
+
+  if (isMe) {
+    rankStyle += " ring-2 ring-sky-400 bg-sky-50/50 z-10 relative";
+  }
+
+  const trend = isMe ? "up" : ["up", "down", "same"][user.id.charCodeAt(0) % 3];
+
+  return (
+    <div
+      className={`group flex items-center gap-4 md:gap-6 p-4 rounded-2xl border-b-[3px] transition-all hover:shadow-md hover:-translate-y-0.5 w-full ${rankStyle}`}
+    >
+      <div
+        className={`w-10 text-center flex flex-col items-center justify-center shrink-0 ${textStyle}`}
+      >
+        <span className="text-xl md:text-2xl font-bold">{rank}</span>
+      </div>
+
+      <div
+        className={`relative w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full bg-white flex items-center justify-center shadow-sm ${avatarBorder}`}
+      >
+        <UserAvatar name={user.name} rank={rank} />
+        {rank === 1 && (
+          <Crown
+            size={20}
+            className="absolute -top-3 text-yellow-500 fill-yellow-500 animate-bounce"
+          />
+        )}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <h3
+          className={`truncate text-base md:text-lg ${isMe ? "font-black text-sky-700" : "font-bold text-slate-700"}`}
+        >
+          {isMe ? "You" : user.name}
+          {isMe && (
+            <span className="ml-3 inline-block px-2 py-0.5 bg-sky-200 text-sky-700 text-[10px] rounded-full uppercase tracking-wider font-bold align-middle">
+              You
+            </span>
+          )}
+        </h3>
+        <div className="flex items-center gap-1 text-xs md:text-sm text-slate-400 font-medium mt-0.5">
+          <RankChangeIcon trend={trend} />
+          <span>
+            {trend === "same"
+              ? "Stable"
+              : trend === "up"
+                ? "Rising"
+                : "Falling"}
+          </span>
+        </div>
+      </div>
+      <div className="text-right shrink-0">
+        <div className="font-black text-slate-700 flex items-center justify-end gap-1.5 text-lg md:text-xl">
+          {user.xp}{" "}
+          <span className="text-xs font-bold text-slate-400 uppercase self-center pt-1">
+            XP
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN CLIENT COMPONENT ---
+export default function RankClient({
+  leaderboard,
+  currentUser,
+  streak,
+  weeklyXP, // 👈 NEW PROP
+}: {
+  leaderboard: any[];
+  currentUser: any;
+  streak: number;
+  weeklyXP: number;
+}) {
+  const [timeLeft] = useState("2d 14h");
+
+  const myIndex = leaderboard.findIndex((u) => u.id === currentUser.id);
+  const myRank = myIndex !== -1 ? myIndex + 1 : ">50";
+
+  // Goal Logic
+  const WEEKLY_GOAL = 500;
+  const progressPercent = Math.min((weeklyXP / WEEKLY_GOAL) * 100, 100);
+  const remaining = Math.max(WEEKLY_GOAL - weeklyXP, 0);
+
+  return (
+    <div className="flex w-full max-w-[1920px] mx-auto min-h-screen bg-slate-50">
+      {/* === CENTER CONTENT (Leaderboard) === */}
+      <div className="flex-1 overflow-y-auto scroll-smooth border-r border-slate-100 p-6 lg:p-10">
+        {/* Sticky Header */}
+        <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl p-4 mb-6 sticky top-0 z-30 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-yellow-100 p-2.5 rounded-xl text-yellow-600 border border-yellow-200 shadow-sm">
+              <Trophy size={28} />
+            </div>
+            <div>
+              <h1 className="font-extrabold text-slate-700 text-xl leading-tight">
+                Gold League
+              </h1>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                Top Learners
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+            <Clock size={16} className="text-slate-400" />
+            <span className="text-sm font-bold text-slate-600 tabular-nums">
+              {timeLeft}
+            </span>
+          </div>
+        </div>
+
+        <main className="space-y-3 pb-24 lg:pb-0 max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 mb-4 px-2">
+            <Sparkles size={18} className="text-green-500" />
+            <p className="text-sm font-medium text-slate-500">
+              Top 7 advance to the{" "}
+              <span className="text-cyan-600 font-bold">Diamond League</span>.
+            </p>
+          </div>
+
+          {leaderboard.map((user, index) => {
+            const rank = index + 1;
+            const isPromotionZoneEnd = rank === 7;
+            const isMe = user.id === currentUser.id;
+
+            return (
+              <React.Fragment key={user.id}>
+                <UserRow user={user} rank={rank} isMe={isMe} />
+                {isPromotionZoneEnd && (
+                  <div className="py-4 flex items-center gap-4 opacity-80 w-full animate-pulse">
+                    <div className="h-[2px] flex-1 bg-gradient-to-r from-transparent via-green-300 to-transparent"></div>
+                    <div className="shrink-0 text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200 uppercase tracking-wider shadow-sm">
+                      Promotion Zone
+                    </div>
+                    <div className="h-[2px] flex-1 bg-gradient-to-r from-transparent via-green-300 to-transparent"></div>
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </main>
+      </div>
+
+      {/* === RIGHT SIDEBAR === */}
+      <div className="hidden lg:flex flex-col w-[350px] 2xl:w-[400px] bg-slate-50/50 p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-100">
+        {/* Widget 1: My Performance */}
+        <div className="bg-white rounded-2xl border-2 border-slate-100 p-5 shadow-sm">
+          <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <Star size={20} className="text-yellow-400" fill="currentColor" />{" "}
+            My Performance
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-sky-50 p-4 rounded-xl border border-sky-100 text-center hover:scale-105 transition-transform cursor-default">
+              <Zap
+                size={24}
+                className="text-[#0ea5e9] mx-auto mb-2"
+                fill="currentColor"
+              />
+              <div className="font-black text-slate-700 text-xl">
+                {currentUser.xp}
+              </div>
+              <div className="text-[10px] font-bold text-sky-400 uppercase tracking-wider">
+                Total XP
+              </div>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 text-center hover:scale-105 transition-transform cursor-default">
+              <Flame
+                size={24}
+                className="text-orange-500 mx-auto mb-2"
+                fill="currentColor"
+              />
+              <div className="font-black text-slate-700 text-xl">{streak}</div>
+              <div className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">
+                Streak
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Widget 2: Weekly Goal (FUNCTIONAL) */}
+        <div className="bg-white rounded-2xl border-2 border-slate-100 p-5 shadow-sm">
+          <h3 className="font-bold text-slate-700 mb-3 flex items-center justify-between">
+            <span>Weekly Goal</span>
+            <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+              Reset in 2d
+            </span>
+          </h3>
+          <div className="flex items-center gap-3 mb-2">
+            <Target
+              size={28}
+              className={`shrink-0 ${weeklyXP >= WEEKLY_GOAL ? "text-green-500" : "text-red-500"}`}
+            />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold text-slate-700 mb-1">
+                {weeklyXP >= WEEKLY_GOAL
+                  ? "Goal Achieved!"
+                  : `Earn ${remaining} more XP`}
+              </div>
+              <div className="h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                <div
+                  className={`h-full w-full rounded-full shadow-lg transition-all duration-1000 ${weeklyXP >= WEEKLY_GOAL ? "bg-green-500" : "bg-red-500"}`}
+                  style={{ width: `${progressPercent}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-slate-400 font-bold mt-1 text-right">
+                {weeklyXP} / {WEEKLY_GOAL}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Widget 3: Castpotro Plus */}
+        <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-[#0ea5e9] to-violet-600 text-white shadow-lg shadow-sky-200 group cursor-pointer">
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-2">
+              <Crown
+                size={24}
+                className="text-yellow-300 animate-pulse"
+                fill="currentColor"
+              />
+              <h3 className="font-black text-lg uppercase tracking-wide">
+                Castpotro Plus
+              </h3>
+            </div>
+            <p className="text-white/90 text-sm font-medium mb-6 leading-relaxed">
+              Boost your XP gain by 2x and unlock exclusive league avatars.
+            </p>
+            <button className="w-full py-3 bg-white text-[#0ea5e9] rounded-xl font-extrabold text-sm uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-95 transition-all">
+              Upgrade Now
+            </button>
+          </div>
+          <div className="absolute -right-6 -top-6 opacity-20 rotate-12 group-hover:rotate-[20deg] transition-transform duration-700">
+            <Sparkles size={140} />
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Footer */}
+      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-[0_-5px_30px_rgba(0,0,0,0.08)] z-50 lg:hidden">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="font-black text-slate-400 text-lg w-8 text-center">
+              {myRank}
+            </div>
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 text-xl">
+              <div className="w-full h-full rounded-full flex items-center justify-center font-bold text-slate-700">
+                {currentUser.name?.charAt(0).toUpperCase()}
+              </div>
+            </div>
+            <div>
+              <div className="font-black text-slate-700 text-base">You</div>
+              <div className="text-xs font-medium text-slate-400">
+                {currentUser.xp} XP
+              </div>
+            </div>
+          </div>
+          <button className="bg-sky-500 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-sky-200 hover:scale-105 transition active:scale-95 font-bold text-sm flex items-center gap-2">
+            <Zap size={16} fill="currentColor" />
+            Train
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

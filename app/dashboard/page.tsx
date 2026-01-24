@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getUserStreak } from "@/app/actions/quests"; // Import action
+import { getUserStreak } from "@/app/actions/quests";
 import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {
@@ -12,7 +12,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch Current User & Enrollments with deep completion status
+  // 1. Fetch Current User
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch All Courses with Structure (Units and Lessons)
+  // 2. Fetch All Courses
   const courses = await prisma.course.findMany({
     include: {
       units: {
@@ -40,10 +40,40 @@ export default async function DashboardPage() {
     },
   });
 
-  // Fetch Streak Data
+  // 3. Fetch Streak Data
   const streakData = await getUserStreak(userId);
 
+  // 4. Fetch Leaderboard Data (FILTERED BY ROLE 'USER')
+  const leaderboard = await prisma.user.findMany({
+    take: 5,
+    where: {
+      role: "USER", // Only fetch learners
+    },
+    orderBy: { xp: "desc" },
+    select: {
+      id: true,
+      name: true,
+      xp: true,
+      avatarConfig: true,
+    },
+  });
+
+  // 5. Calculate My Real Rank (Compared only against other USERs)
+  const higherRankUsers = await prisma.user.count({
+    where: {
+      role: "USER", // Only count learners with more XP
+      xp: { gt: user.xp },
+    },
+  });
+  const myRank = higherRankUsers + 1;
+
   return (
-    <DashboardClient user={user} courses={courses} streakData={streakData} />
+    <DashboardClient
+      user={user}
+      courses={courses}
+      streakData={streakData}
+      leaderboard={leaderboard}
+      myRank={myRank}
+    />
   );
 }
