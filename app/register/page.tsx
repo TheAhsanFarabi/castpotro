@@ -1,12 +1,12 @@
 "use client";
 import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image'; // Import Image
+import Image from 'next/image'; 
 import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { registerAction } from '../actions';
 import confetti from 'canvas-confetti';
-import { ArrowLeft, Loader2 } from 'lucide-react'; // Removed Zap
+import { ArrowLeft, Loader2 } from 'lucide-react'; 
 import { motion } from 'framer-motion';
 
 const initialState = {
@@ -50,7 +50,7 @@ const Typewriter = ({ text, speed = 100, delay = 2000 }: { text: string[], speed
   return (
     <span className="inline-block min-h-[1.5em]">
       {currentText}
-      <span className="animate-pulse text-sky-500 font-bold">|</span>
+      <span className="animate-pulse text-[#0ea5e9] font-bold">|</span>
     </span>
   );
 };
@@ -61,9 +61,9 @@ function RegisterForm() {
 
   useEffect(() => {
     if (state?.success) {
-      // Confetti Effect
+      // Confetti Effect - Blue & Pink
       const end = Date.now() + 3 * 1000; 
-      const colors = ['#0ea5e9', '#ffffff', '#f59e0b'];
+      const colors = ['#0ea5e9', '#ec4899', '#ffffff'];
 
       (function frame() {
         confetti({
@@ -89,31 +89,37 @@ function RegisterForm() {
   }, [state?.success, router]);
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24 p-6 min-h-screen">
+    <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24 p-6 min-h-screen relative">
       
+      {/* --- LOGO: Top Left --- */}
+      <div className="absolute top-6 left-6 z-50">
+         <Link href="/" className="flex items-center gap-3 group">
+            <Image 
+              src="/icon.png" 
+              alt="Castpotro Logo" 
+              width={80} 
+              height={80} 
+              className="object-contain transition-transform group-hover:scale-110"
+            />
+            <span className="text-3xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#0ea5e9] to-pink-500 hidden sm:block">
+              castpotro
+            </span>
+         </Link>
+      </div>
+
       {/* --- LEFT: FORM --- */}
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-md p-8 rounded-[32px] shadow-xl border-2 border-slate-100 relative">
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-md p-8 rounded-[32px] shadow-xl border-2 border-slate-100 relative mt-24 lg:mt-0">
           
           <div className="flex justify-between items-center mb-6">
               <Link href="/" className="text-slate-400 hover:text-slate-600 p-2 -ml-2 rounded-full hover:bg-slate-50 transition">
                   <ArrowLeft size={24} />
               </Link>
-              <Link href="/login" className="text-sm font-bold text-[#0ea5e9] uppercase tracking-wider hover:underline">
+              <Link href="/login" className="text-sm font-bold text-[#0ea5e9] uppercase tracking-wider hover:text-sky-600 transition-colors">
                   Log in
               </Link>
           </div>
 
           <div className="flex flex-col items-start mb-6">
-              <div className="bg-sky-50 p-4 rounded-2xl mb-4">
-                  {/* Replaced Zap with Big Icon */}
-                  <Image 
-                    src="/icon.png" 
-                    alt="Castpotro Logo" 
-                    width={60} 
-                    height={60} 
-                    className="object-contain" 
-                  />
-              </div>
               <h2 className="text-3xl font-black text-slate-800">Create Profile</h2>
               <p className="text-slate-500 font-medium">Join us and start your streak.</p>
           </div>
@@ -127,7 +133,7 @@ function RegisterForm() {
               <input type="password" name="password" placeholder="Password" className="input-field" required />
               
               {state?.message && (
-                  <div className={`p-3 rounded-xl text-sm font-bold text-center ${state.success ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+                  <div className={`p-3 rounded-xl text-sm font-bold text-center ${state.success ? 'bg-emerald-50 text-emerald-600' : 'bg-pink-50 text-pink-500'}`}>
                       {state.message}
                   </div>
               )}
@@ -146,15 +152,15 @@ function RegisterForm() {
           </p>
       </div>
 
-      {/* --- RIGHT: ROBOT WITH TYPEWRITER CONVO (KEPT AS IS) --- */}
+      {/* --- RIGHT: ROBOT MASCOT RESTORED --- */}
       <div className="hidden lg:flex flex-col items-center justify-center relative">
           
-          {/* Speech Bubble with Typewriter */}
+          {/* Speech Bubble */}
           <motion.div 
               initial={{ opacity: 0, y: 20, scale: 0.8 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
-              className="bg-white px-8 py-5 rounded-[2rem] rounded-bl-none shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-2 border-slate-100 mb-2 transform -translate-x-12 relative z-20 min-w-[280px]"
+              className="bg-white/90 backdrop-blur px-8 py-5 rounded-[2rem] rounded-bl-none shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-2 border-slate-100 mb-2 transform -translate-x-12 relative z-20 min-w-[280px]"
           >
               <div className="text-slate-700 font-bold text-xl">
                  <Typewriter 
@@ -170,11 +176,10 @@ function RegisterForm() {
                     delay={1500}
                  />
               </div>
-              {/* Pointer */}
               <div className="absolute -bottom-3 left-0 w-6 h-6 bg-white border-b-2 border-l-2 border-slate-100 transform -rotate-45"></div>
           </motion.div>
 
-          {/* The Robot */}
+          {/* THE ROBOT IS BACK */}
           <motion.div 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: [0, -20, 0], opacity: 1 }}
@@ -193,7 +198,7 @@ function RegisterForm() {
           
           {/* Floor Shadow */}
           <motion.div 
-              className="w-48 h-6 bg-black/10 rounded-full blur-2xl mt-2"
+              className="w-48 h-6 bg-[#0ea5e9]/20 rounded-full blur-2xl mt-2"
               animate={{ scale: [1, 0.8, 1], opacity: [0.3, 0.6, 0.3] }}
               transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
           />

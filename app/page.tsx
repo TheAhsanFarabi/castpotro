@@ -28,7 +28,7 @@ export default function LandingPage() {
             className="object-contain"
           />
         </div>
-        <div className="hidden md:flex items-center gap-2 text-slate-400 font-bold uppercase tracking-wider text-sm cursor-pointer hover:text-slate-500 transition-colors">
+        <div className="hidden md:flex items-center gap-2 text-slate-400 font-bold uppercase tracking-wider text-sm cursor-pointer hover:text-[#0ea5e9] transition-colors">
           Language: English <ChevronDown size={16} />
         </div>
       </header>
@@ -58,8 +58,6 @@ export default function LandingPage() {
               </button>
             </Link>
           </div>
-
-          {/* Mini Social Proof */}
           <div className="flex items-center gap-4 text-sm font-bold text-slate-400 pt-2">
             <div className="flex -space-x-2">
               <div className="w-8 h-8 rounded-full bg-slate-200 border-2 border-white"></div>
@@ -69,8 +67,6 @@ export default function LandingPage() {
             <p>Join 10,000+ learners today</p>
           </div>
         </div>
-
-        {/* Right Hero Image */}
         <div className="relative w-[320px] h-[320px] lg:w-[500px] lg:h-[500px] order-1 lg:order-2">
           <Image
             src="/hero.png"
@@ -176,8 +172,6 @@ export default function LandingPage() {
     </div>
   );
 }
-
-// --- SUB-COMPONENTS ---
 
 function FeatureCard({
   icon,

@@ -75,7 +75,6 @@ const LessonNode = ({
 
 // --- Helper: Avatar Component ---
 const UserAvatar = ({ name, rank }: { name: string; rank: number }) => {
-  // Simple color generation based on rank
   const colors = [
     "bg-yellow-200 text-yellow-700", // Rank 1
     "bg-slate-200 text-slate-700", // Rank 2
@@ -88,7 +87,7 @@ const UserAvatar = ({ name, rank }: { name: string; rank: number }) => {
     <div
       className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${style}`}
     >
-      {rank <= 3 ? rank : name.charAt(0).toUpperCase()}
+      {rank <= 3 ? rank : name?.charAt(0).toUpperCase() || "U"}
     </div>
   );
 };
@@ -97,8 +96,8 @@ export default function DashboardClient({
   user,
   courses,
   streakData,
-  leaderboard, // 👇 NEW PROP
-  myRank, // 👇 NEW PROP
+  leaderboard, // <--- New Prop
+  myRank, // <--- New Prop
 }: {
   user: any;
   courses: any[];
@@ -497,7 +496,7 @@ export default function DashboardClient({
           weekActivity={streakData.weekActivity}
         />
 
-        {/* 👇 UPDATED: REAL LEADERBOARD WIDGET */}
+        {/* --- LEADERBOARD WIDGET (Fixed) --- */}
         <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
           <Link href="/dashboard/rank" className="group">
             <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2 group-hover:text-amber-500 transition-colors">
@@ -510,58 +509,36 @@ export default function DashboardClient({
             globally!
           </p>
 
-          {/* REAL DATA MAPPING */}
-          {leaderboard.map((u: any, index: number) => {
-            const rank = index + 1;
-            const isMe = u.id === user.id;
+          {/* DYNAMIC USERS LIST */}
+          {leaderboard &&
+            leaderboard.map((u: any, index: number) => {
+              const rank = index + 1;
+              const isMe = u.id === user.id;
 
-            return (
-              <div
-                key={u.id}
-                className={`flex items-center gap-3 p-2 rounded-xl border mb-2 transition-all ${isMe ? "bg-sky-50 border-sky-100 shadow-sm scale-[1.02]" : "bg-white border-transparent hover:border-slate-100"}`}
-              >
-                <UserAvatar name={u.name || "U"} rank={rank} />
+              return (
+                <div
+                  key={u.id}
+                  className={`flex items-center gap-3 p-2 rounded-xl border mb-2 transition-all ${isMe ? "bg-sky-50 border-sky-100 shadow-sm scale-[1.02]" : "bg-white border-transparent hover:border-slate-100"}`}
+                >
+                  <UserAvatar name={u.name || "U"} rank={rank} />
 
-                <div className="flex-1 min-w-0">
-                  <div
-                    className={`text-sm truncate ${isMe ? "font-black text-sky-700" : "font-bold text-slate-700"}`}
-                  >
-                    {isMe ? "You" : u.name}
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className={`text-sm truncate ${isMe ? "font-black text-sky-700" : "font-bold text-slate-700"}`}
+                    >
+                      {isMe ? "You" : u.name}
+                    </div>
+                  </div>
+
+                  <div className="font-bold text-slate-400 text-xs whitespace-nowrap">
+                    {u.xp} XP
                   </div>
                 </div>
-
-                <div className="font-bold text-slate-400 text-xs whitespace-nowrap">
-                  {u.xp} XP
-                </div>
-              </div>
-            );
-          })}
-
-          {/* If user is NOT in the top 5, show them at the bottom */}
-          {myRank > 5 && (
-            <>
-              <div className="flex justify-center my-2">
-                <div className="h-1 w-1 bg-slate-300 rounded-full mx-0.5"></div>
-                <div className="h-1 w-1 bg-slate-300 rounded-full mx-0.5"></div>
-                <div className="h-1 w-1 bg-slate-300 rounded-full mx-0.5"></div>
-              </div>
-              <div className="flex items-center gap-3 p-2 bg-sky-50 rounded-xl border border-sky-100 shadow-sm relative overflow-hidden">
-                <div className="w-8 h-8 rounded-full bg-[#0ea5e9] flex items-center justify-center font-bold text-white z-10 text-sm">
-                  {myRank}
-                </div>
-                <div className="flex-1 font-bold text-slate-700 z-10 text-sm">
-                  You
-                </div>
-                <div className="font-bold text-[#0ea5e9] text-xs z-10">
-                  {user.xp} XP
-                </div>
-                <div className="absolute inset-0 bg-sky-50 opacity-50"></div>
-              </div>
-            </>
-          )}
+              );
+            })}
         </div>
 
-        {/* Ads Widget - WRAPPED IN LINK */}
+        {/* Ads Widget */}
         <Link href="/dashboard/plus">
           <div className="bg-gradient-to-br from-[#0ea5e9] to-violet-600 rounded-2xl p-6 text-white relative overflow-hidden group cursor-pointer shadow-lg shadow-sky-200 transition-transform hover:scale-[1.02] active:scale-95">
             <div className="relative z-10">
