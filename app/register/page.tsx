@@ -1,11 +1,12 @@
 "use client";
 import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image'; // Import Image
 import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { registerAction } from '../actions';
 import confetti from 'canvas-confetti';
-import { Zap, ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react'; // Removed Zap
 import { motion } from 'framer-motion';
 
 const initialState = {
@@ -88,10 +89,10 @@ function RegisterForm() {
   }, [state?.success, router]);
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24 p-6">
+    <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24 p-6 min-h-screen">
       
       {/* --- LEFT: FORM --- */}
-      <div className="w-full max-w-md bg-white p-8 rounded-[32px] shadow-xl border-2 border-slate-100 relative">
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-md p-8 rounded-[32px] shadow-xl border-2 border-slate-100 relative">
           
           <div className="flex justify-between items-center mb-6">
               <Link href="/" className="text-slate-400 hover:text-slate-600 p-2 -ml-2 rounded-full hover:bg-slate-50 transition">
@@ -103,8 +104,15 @@ function RegisterForm() {
           </div>
 
           <div className="flex flex-col items-start mb-6">
-              <div className="bg-sky-50 p-3 rounded-2xl mb-4 text-[#0ea5e9]">
-                  <Zap size={28} fill="currentColor" />
+              <div className="bg-sky-50 p-4 rounded-2xl mb-4">
+                  {/* Replaced Zap with Big Icon */}
+                  <Image 
+                    src="/icon.png" 
+                    alt="Castpotro Logo" 
+                    width={60} 
+                    height={60} 
+                    className="object-contain" 
+                  />
               </div>
               <h2 className="text-3xl font-black text-slate-800">Create Profile</h2>
               <p className="text-slate-500 font-medium">Join us and start your streak.</p>
@@ -138,7 +146,7 @@ function RegisterForm() {
           </p>
       </div>
 
-      {/* --- RIGHT: ROBOT WITH TYPEWRITER CONVO --- */}
+      {/* --- RIGHT: ROBOT WITH TYPEWRITER CONVO (KEPT AS IS) --- */}
       <div className="hidden lg:flex flex-col items-center justify-center relative">
           
           {/* Speech Bubble with Typewriter */}

@@ -1,8 +1,9 @@
 "use client";
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { 
-  Zap, Hexagon, Users, Shield, Bell, Smile, LogOut, 
+  Hexagon, Users, Shield, Bell, Smile, LogOut, 
   Briefcase, Settings, HelpCircle, Compass 
 } from 'lucide-react';
 import { logoutAction } from '../actions'; 
@@ -17,9 +18,7 @@ const NavItem = ({ icon, label, href }: { icon: any, label: string, href: string
     <Link href={href} className="w-full">
       <div className={`
         flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition
-        ${isActive 
-            ? 'bg-violet-50 text-violet-600 border-2 border-violet-200 shadow-sm' 
-            : 'text-slate-400 hover:bg-white/50 hover:text-slate-600 border-2 border-transparent'}
+        ${isActive ? 'bg-sky-50 text-[#0ea5e9] border-2 border-sky-200' : 'text-slate-400 hover:bg-slate-50 border-2 border-transparent'}
       `}>
         {icon}
         <span className="hidden xl:block font-extrabold uppercase text-sm tracking-widest">{label}</span>
@@ -30,16 +29,23 @@ const NavItem = ({ icon, label, href }: { icon: any, label: string, href: string
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    // Updated: bg-transparent to show global background
-    <div className="min-h-screen bg-transparent flex flex-col md:flex-row font-sans text-slate-900">
+    <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans text-slate-900">
       
-      {/* SIDEBAR - Kept semi-transparent glass effect */}
-      <nav className="w-full md:w-20 xl:w-[240px] 2xl:w-[300px] md:h-screen bg-white/80 backdrop-blur-xl border-r-2 border-slate-200/60 fixed md:static bottom-0 z-50 px-4 md:px-3 xl:px-4 py-2 md:py-8 flex md:flex-col justify-between md:justify-start gap-2 md:gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:shadow-none shrink-0 transition-all duration-300">
-         <Link href="/" className="hidden md:flex items-center justify-center xl:justify-start gap-2 text-2xl font-extrabold tracking-tighter mb-8 px-0 xl:px-4 group">
-           <div className="text-violet-600 bg-violet-100 p-1.5 rounded-lg group-hover:rotate-12 transition-transform">
-             <Zap fill="currentColor" size={24} /> 
-           </div>
-           <span className="hidden xl:block text-slate-700 group-hover:text-violet-600 transition-colors">castpotro</span>
+      {/* SIDEBAR NAVIGATION */}
+      <nav className="w-full md:w-20 xl:w-[240px] 2xl:w-[300px] md:h-screen bg-white border-r-2 border-slate-100 fixed md:static bottom-0 z-50 px-4 md:px-3 xl:px-4 py-2 md:py-8 flex md:flex-col justify-between md:justify-start gap-2 md:gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:shadow-none shrink-0 transition-all duration-300">
+         
+         {/* Updated Logo Section: 80px Icon + Text */}
+         <Link href="/" className="hidden md:flex items-center justify-center xl:justify-start gap-4 mb-8 px-0 xl:px-2 group">
+           <Image 
+             src="/icon.png" 
+             alt="Castpotro Logo" 
+             width={80} 
+             height={80} 
+             className="object-contain shrink-0 transition-transform group-hover:scale-105"
+           />
+           <span className="hidden xl:block text-2xl font-black text-slate-700 tracking-tighter group-hover:text-[#0ea5e9] transition-colors">
+             castpotro
+           </span>
          </Link>
          
          <div className="flex flex-col gap-2 w-full overflow-y-auto no-scrollbar pb-20 md:pb-0">
@@ -57,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
          </div>
 
-         <div className="md:mt-auto w-full pt-4 hidden md:block border-t border-slate-100/50">
+         <div className="md:mt-auto w-full pt-4 bg-white hidden md:block">
             <form action={logoutAction}>
                 <button className="flex items-center justify-center xl:justify-start gap-4 px-4 py-3 rounded-xl cursor-pointer transition text-slate-400 hover:bg-red-50 hover:text-red-500 w-full border-2 border-transparent hover:border-red-100">
                     <LogOut size={28} />
@@ -68,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex justify-center overflow-y-auto h-screen relative min-w-0">
+      <main className="flex-1 flex justify-center overflow-y-auto h-screen bg-white relative min-w-0">
         {children}
       </main>
     </div>
