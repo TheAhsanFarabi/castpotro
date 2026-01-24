@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { 
   Hexagon, Users, Shield, Bell, Smile, LogOut, 
-  Briefcase, Settings, HelpCircle, Compass 
+  Briefcase, Settings, HelpCircle, Compass, Calendar 
 } from 'lucide-react';
 import { logoutAction } from '../actions'; 
 
@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* SIDEBAR NAVIGATION */}
       <nav className="w-full md:w-20 xl:w-[240px] 2xl:w-[300px] md:h-screen bg-white border-r-2 border-slate-100 fixed md:static bottom-0 z-50 px-4 md:px-3 xl:px-4 py-2 md:py-8 flex md:flex-col justify-between md:justify-start gap-2 md:gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:shadow-none shrink-0 transition-all duration-300">
          
-         {/* Updated Logo Section: 80px Icon + Text */}
+         {/* Logo Section */}
          <Link href="/" className="hidden md:flex items-center justify-center xl:justify-start gap-4 mb-8 px-0 xl:px-2 group">
            <Image 
              src="/icon.png" 
@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
          
          <div className="flex flex-col gap-2 w-full overflow-y-auto no-scrollbar pb-20 md:pb-0">
             <NavItem icon={<Hexagon size={28} />} label="Learn" href="/dashboard" />
-            <NavItem icon={<Users size={28} />} label="Events" href="/dashboard/events" />
+            <NavItem icon={<Calendar size={28} />} label="Events" href="/dashboard/events" />
             <NavItem icon={<Shield size={28} />} label="Rank" href="/dashboard/rank" />
             <NavItem icon={<Compass size={28} />} label="Quests" href="/dashboard/quests" />
             <NavItem icon={<Briefcase size={28} />} label="Jobs" href="/dashboard/jobs" />
@@ -58,7 +58,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <NavItem icon={<Smile size={28} />} label="Profile" href="/dashboard/profile" />
             <NavItem icon={<Settings size={28} />} label="Settings" href="/dashboard/settings" />
 
-            <div className="mt-4 border-t border-slate-100 pt-4">
+            <div className="mt-4 border-t border-slate-100 pt-4 flex flex-col gap-2">
+              <NavItem icon={<Users size={28} />} label="Meet Our Team" href="/dashboard/team" />
               <NavItem icon={<HelpCircle size={28} />} label="Help" href="/dashboard/help" />
             </div>
          </div>
