@@ -1,11 +1,52 @@
+// import { prisma } from "@/lib/prisma";
+// import { Users, BookOpen, Target, TrendingUp, Activity } from "lucide-react";
+// import {
+//   getUserGrowthData,
+//   getInstructorCourseEnrollmentData,
+// } from "@/app/actions/admin";
+// import UserGrowthChart from "./UserGrowthChart"; // Import the new component
+
+// export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { Users, BookOpen, Target, TrendingUp, Activity } from "lucide-react";
 import { getUserGrowthData } from "@/app/actions/admin";
-import UserGrowthChart from "./UserGrowthChart"; // Import the new component
+import UserGrowthChart from "./UserGrowthChart";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
+  // const [
+  //   userCount,
+  //   courseCount,
+  //   questCount,
+  //   pendingSubmissions,
+  //   recentUsers,
+  //   recentSubmissions,
+  //   initialGrowthData, // Get the default (monthly) data
+  // ] = await Promise.all([
+  //   prisma.user.count({ where: { role: "USER" } }),
+  //   prisma.course.count(),
+  //   prisma.quest.count({ where: { isActive: true } }),
+  //   prisma.questSubmission.count({ where: { status: "PENDING" } }),
+
+  //   prisma.user.findMany({
+  //     take: 5,
+  //     orderBy: { createdAt: "desc" },
+  //     select: { id: true, name: true, createdAt: true, role: true },
+  //   }),
+
+  //   prisma.questSubmission.findMany({
+  //     take: 5,
+  //     orderBy: { createdAt: "desc" },
+  //     include: { user: true, quest: true },
+  //   }),
+
+  //   getUserGrowthData("monthly"), // Fetch initial data
+  // ]);
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+
   const [
     userCount,
     courseCount,
@@ -13,10 +54,13 @@ export default async function AdminDashboard() {
     pendingSubmissions,
     recentUsers,
     recentSubmissions,
-    initialGrowthData, // Get the default (monthly) data
+    initialGrowthData,
   ] = await Promise.all([
-    prisma.user.count({ where: { role: "USER" } }),
-    prisma.course.count(),
+    // If Instructor, show their specific learner count; if Admin, show total
+    prisma.enrollment.count({
+      where: { course: { creatorId: userId } },
+    }),
+    prisma.course.count({ where: { creatorId: userId } }),
     prisma.quest.count({ where: { isActive: true } }),
     prisma.questSubmission.count({ where: { status: "PENDING" } }),
 
@@ -32,7 +76,7 @@ export default async function AdminDashboard() {
       include: { user: true, quest: true },
     }),
 
-    getUserGrowthData("monthly"), // Fetch initial data
+    getUserGrowthData("monthly"),
   ]);
 
   return (

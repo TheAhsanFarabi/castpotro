@@ -435,80 +435,186 @@ export async function updateQuest(questId: string, formData: FormData) {
 }
 
 // --- ANALYTICS ---
+// export async function getUserGrowthData(
+//   period: "monthly" | "daily" | "yearly" = "monthly",
+// ) {
+//   const users = await prisma.user.findMany({
+//     select: { createdAt: true },
+//     orderBy: { createdAt: "asc" },
+//   });
+
+//   const data = new Map<string, number>();
+
+//   // 1. Initialize Keys (X-Axis labels)
+//   if (period === "monthly") {
+//     // Last 6 Months
+//     for (let i = 5; i >= 0; i--) {
+//       const d = new Date();
+//       d.setMonth(d.getMonth() - i);
+//       const key = d.toLocaleString("default", {
+//         month: "short",
+//         year: "2-digit",
+//       }); // "Jan 26"
+//       data.set(key, 0);
+//     }
+//   } else if (period === "daily") {
+//     // Last 7 Days
+//     for (let i = 6; i >= 0; i--) {
+//       const d = new Date();
+//       d.setDate(d.getDate() - i);
+//       const key = d.toLocaleString("default", {
+//         month: "short",
+//         day: "numeric",
+//       }); // "Jan 24"
+//       data.set(key, 0);
+//     }
+//   } else if (period === "yearly") {
+//     // Last 5 Years
+//     for (let i = 4; i >= 0; i--) {
+//       const d = new Date();
+//       d.setFullYear(d.getFullYear() - i);
+//       const key = d.getFullYear().toString(); // "2026"
+//       data.set(key, 0);
+//     }
+//   }
+
+//   // 2. Count Users
+//   users.forEach((user) => {
+//     let key = "";
+//     const now = new Date();
+
+//     if (period === "monthly") {
+//       // Filter: Must be within last 6 months window approx
+//       const sixMonthsAgo = new Date();
+//       sixMonthsAgo.setMonth(now.getMonth() - 5);
+//       if (user.createdAt >= sixMonthsAgo) {
+//         key = user.createdAt.toLocaleString("default", {
+//           month: "short",
+//           year: "2-digit",
+//         });
+//       }
+//     } else if (period === "daily") {
+//       // Filter: Must be within last 7 days
+//       const sevenDaysAgo = new Date();
+//       sevenDaysAgo.setDate(now.getDate() - 6); // -6 to include today
+//       if (user.createdAt >= sevenDaysAgo) {
+//         key = user.createdAt.toLocaleString("default", {
+//           month: "short",
+//           day: "numeric",
+//         });
+//       }
+//     } else if (period === "yearly") {
+//       // Filter: Must be within last 5 years
+//       const fiveYearsAgo = new Date();
+//       fiveYearsAgo.setFullYear(now.getFullYear() - 4);
+//       if (user.createdAt >= fiveYearsAgo) {
+//         key = user.createdAt.getFullYear().toString();
+//       }
+//     }
+
+//     if (key && data.has(key)) {
+//       data.set(key, data.get(key)! + 1);
+//     }
+//   });
+
+//   return Array.from(data.entries()).map(([name, value]) => ({ name, value }));
+// }
+// gemini/app/actions/admin.ts
+
 export async function getUserGrowthData(
   period: "monthly" | "daily" | "yearly" = "monthly",
 ) {
-  const users = await prisma.user.findMany({
-    select: { createdAt: true },
-    orderBy: { createdAt: "asc" },
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+
+  if (!userId) throw new Error("Unauthorized");
+
+  // Fetch the user to check their role
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
   });
+
+  let enrollments;
+
+  if (currentUser?.role === "SUPER_ADMIN") {
+    // Admins see platform-wide growth
+    enrollments = await prisma.enrollment.findMany({
+      select: { createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
+  } else {
+    // Instructors only see growth for their own courses
+    enrollments = await prisma.enrollment.findMany({
+      where: {
+        course: {
+          creatorId: userId,
+        },
+      },
+      select: { createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
+  }
 
   const data = new Map<string, number>();
 
   // 1. Initialize Keys (X-Axis labels)
+  const now = new Date();
   if (period === "monthly") {
-    // Last 6 Months
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
       const key = d.toLocaleString("default", {
         month: "short",
         year: "2-digit",
-      }); // "Jan 26"
+      });
       data.set(key, 0);
     }
   } else if (period === "daily") {
-    // Last 7 Days
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const key = d.toLocaleString("default", {
         month: "short",
         day: "numeric",
-      }); // "Jan 24"
+      });
       data.set(key, 0);
     }
   } else if (period === "yearly") {
-    // Last 5 Years
     for (let i = 4; i >= 0; i--) {
       const d = new Date();
       d.setFullYear(d.getFullYear() - i);
-      const key = d.getFullYear().toString(); // "2026"
+      const key = d.getFullYear().toString();
       data.set(key, 0);
     }
   }
 
-  // 2. Count Users
-  users.forEach((user) => {
+  // 2. Count Enrollments
+  enrollments.forEach((record) => {
     let key = "";
-    const now = new Date();
-
     if (period === "monthly") {
-      // Filter: Must be within last 6 months window approx
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(now.getMonth() - 5);
-      if (user.createdAt >= sixMonthsAgo) {
-        key = user.createdAt.toLocaleString("default", {
+      if (record.createdAt >= sixMonthsAgo) {
+        key = record.createdAt.toLocaleString("default", {
           month: "short",
           year: "2-digit",
         });
       }
     } else if (period === "daily") {
-      // Filter: Must be within last 7 days
       const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(now.getDate() - 6); // -6 to include today
-      if (user.createdAt >= sevenDaysAgo) {
-        key = user.createdAt.toLocaleString("default", {
+      sevenDaysAgo.setDate(now.getDate() - 6);
+      if (record.createdAt >= sevenDaysAgo) {
+        key = record.createdAt.toLocaleString("default", {
           month: "short",
           day: "numeric",
         });
       }
     } else if (period === "yearly") {
-      // Filter: Must be within last 5 years
       const fiveYearsAgo = new Date();
       fiveYearsAgo.setFullYear(now.getFullYear() - 4);
-      if (user.createdAt >= fiveYearsAgo) {
-        key = user.createdAt.getFullYear().toString();
+      if (record.createdAt >= fiveYearsAgo) {
+        key = record.createdAt.getFullYear().toString();
       }
     }
 
@@ -518,4 +624,28 @@ export async function getUserGrowthData(
   });
 
   return Array.from(data.entries()).map(([name, value]) => ({ name, value }));
+}
+// --- ANALYTICS: Course Enrollments ---
+export async function getInstructorCourseEnrollmentData() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+
+  if (!userId) throw new Error("Unauthorized");
+
+  // Fetch only courses created by this instructor and include enrollment counts
+  const courses = await prisma.course.findMany({
+    where: { creatorId: userId },
+    select: {
+      title: true,
+      _count: {
+        select: { enrollments: true },
+      },
+    },
+  });
+
+  // Transform data for the chart component
+  return courses.map((course) => ({
+    name: course.title,
+    value: course._count.enrollments,
+  }));
 }
