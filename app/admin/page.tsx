@@ -1,12 +1,3 @@
-// import { prisma } from "@/lib/prisma";
-// import { Users, BookOpen, Target, TrendingUp, Activity } from "lucide-react";
-// import {
-//   getUserGrowthData,
-//   getInstructorCourseEnrollmentData,
-// } from "@/app/actions/admin";
-// import UserGrowthChart from "./UserGrowthChart"; // Import the new component
-
-// export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { Users, BookOpen, Target, TrendingUp, Activity } from "lucide-react";
 import { getUserGrowthData } from "@/app/actions/admin";
@@ -16,36 +7,16 @@ import { cookies } from "next/headers";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  // const [
-  //   userCount,
-  //   courseCount,
-  //   questCount,
-  //   pendingSubmissions,
-  //   recentUsers,
-  //   recentSubmissions,
-  //   initialGrowthData, // Get the default (monthly) data
-  // ] = await Promise.all([
-  //   prisma.user.count({ where: { role: "USER" } }),
-  //   prisma.course.count(),
-  //   prisma.quest.count({ where: { isActive: true } }),
-  //   prisma.questSubmission.count({ where: { status: "PENDING" } }),
-
-  //   prisma.user.findMany({
-  //     take: 5,
-  //     orderBy: { createdAt: "desc" },
-  //     select: { id: true, name: true, createdAt: true, role: true },
-  //   }),
-
-  //   prisma.questSubmission.findMany({
-  //     take: 5,
-  //     orderBy: { createdAt: "desc" },
-  //     include: { user: true, quest: true },
-  //   }),
-
-  //   getUserGrowthData("monthly"), // Fetch initial data
-  // ]);
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
+
+  if (!userId) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-slate-500">Unauthorized. Please log in.</p>
+      </div>
+    );
+  }
 
   const [
     userCount,
@@ -54,13 +25,17 @@ export default async function AdminDashboard() {
     pendingSubmissions,
     recentUsers,
     recentSubmissions,
+    myCourses,
     initialGrowthData,
   ] = await Promise.all([
-    // If Instructor, show their specific learner count; if Admin, show total
+    // Count of total learners enrolled in this instructor's courses
     prisma.enrollment.count({
       where: { course: { creatorId: userId } },
     }),
-    prisma.course.count({ where: { creatorId: userId } }),
+    // Count of courses created by this instructor
+    prisma.course.count({
+      where: { creatorId: userId },
+    }),
     prisma.quest.count({ where: { isActive: true } }),
     prisma.questSubmission.count({ where: { status: "PENDING" } }),
 
@@ -76,6 +51,13 @@ export default async function AdminDashboard() {
       include: { user: true, quest: true },
     }),
 
+    // Fetch instructor's specific courses for the chart filter dropdown
+    prisma.course.findMany({
+      where: { creatorId: userId },
+      select: { id: true, title: true },
+    }),
+
+    // Initial data for the chart (default: monthly, all instructor courses)
     getUserGrowthData("monthly"),
   ]);
 
@@ -84,11 +66,11 @@ export default async function AdminDashboard() {
       {/* Welcome Banner */}
       <div className="bg-slate-900 rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden">
         <div className="relative z-10">
-          <h1 className="text-3xl font-black mb-2">Admin Dashboard</h1>
+          <h1 className="text-3xl font-black mb-2">Instructor Dashboard</h1>
           <p className="text-slate-400 max-w-lg">
-            Platform overview. You have{" "}
-            <strong className="text-white">{pendingSubmissions} pending</strong>{" "}
-            quest submissions to review.
+            Course performance overview. You have{" "}
+            <strong className="text-white">{userCount} total learners</strong>{" "}
+            enrolled in your courses.
           </p>
         </div>
         <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-10 translate-y-10">
@@ -99,18 +81,18 @@ export default async function AdminDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Total Learners"
+          title="My Learners"
           value={userCount}
           icon={Users}
           color="bg-indigo-500"
-          trend="+12% vs last week"
+          trend="Total Enrollments"
         />
         <StatCard
-          title="Active Courses"
+          title="My Courses"
           value={courseCount}
           icon={BookOpen}
           color="bg-emerald-500"
-          trend="Stable"
+          trend="Active"
         />
         <StatCard
           title="Active Quests"
@@ -133,8 +115,8 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Use the new Client Component here */}
-        <UserGrowthChart initialData={initialGrowthData} />
+        {/* User Growth Chart with Course Filter */}
+        <UserGrowthChart initialData={initialGrowthData} courses={myCourses} />
 
         {/* Activity Feed */}
         <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm overflow-hidden flex flex-col">
