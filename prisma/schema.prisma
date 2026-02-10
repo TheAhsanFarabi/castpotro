@@ -42,6 +42,8 @@ model User {
   questSubmissions QuestSubmission[]
   notifications      Notification[]     
   notes              Note[]
+  createdCourses Course[] @relation("CourseCreator")
+
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -55,6 +57,11 @@ model Course {
   title       String
   description String
   icon        String       @default("Hexagon") // Lucide icon name
+
+  // to link the instructor (User with INSTRUCTOR role)
+  creatorId   String?
+  creator User? @relation("CourseCreator", fields: [creatorId], references: [id]) 
+
   units       Unit[]
   enrollments Enrollment[]
   

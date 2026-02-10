@@ -2,16 +2,27 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 // --- COURSE ACTIONS ---
 export async function createCourse(formData: FormData) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+
+  if (!userId) throw new Error("Unauthorized");
+
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const icon = (formData.get("icon") as string) || "BookOpen";
 
   await prisma.course.create({
-    data: { title, description, icon },
+    data: {
+      title,
+      description,
+      icon,
+      creatorId: userId, // Set the instructor as the owner
+    },
   });
   revalidatePath("/admin/courses");
 }
