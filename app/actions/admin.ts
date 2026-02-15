@@ -211,6 +211,37 @@ export async function deleteQuest(id: string) {
 
 // --- SUBMISSION VERIFICATION ---
 
+// export async function reviewSubmission(
+//   submissionId: string,
+//   status: "APPROVED" | "REJECTED",
+//   feedback: string,
+// ) {
+//   const submission = await prisma.questSubmission.findUnique({
+//     where: { id: submissionId },
+//     include: { quest: true },
+//   });
+
+//   if (!submission) return { success: false };
+
+//   await prisma.$transaction(async (tx) => {
+//     // 1. Update Submission Status
+//     await tx.questSubmission.update({
+//       where: { id: submissionId },
+//       data: { status, feedback },
+//     });
+
+//     // 2. If Approved, Award XP to User
+//     if (status === "APPROVED" && submission.status !== "APPROVED") {
+//       await tx.user.update({
+//         where: { id: submission.userId },
+//         data: { xp: { increment: submission.quest.xp } },
+//       });
+//     }
+//   });
+
+//   revalidatePath(`/admin/quests/${submission.questId}`);
+//   return { success: true };
+// }
 export async function reviewSubmission(
   submissionId: string,
   status: "APPROVED" | "REJECTED",
@@ -221,7 +252,7 @@ export async function reviewSubmission(
     include: { quest: true },
   });
 
-  if (!submission) return { success: false };
+  if (!submission) return;
 
   await prisma.$transaction(async (tx) => {
     // 1. Update Submission Status
@@ -240,7 +271,6 @@ export async function reviewSubmission(
   });
 
   revalidatePath(`/admin/quests/${submission.questId}`);
-  return { success: true };
 }
 
 // --- USER MANAGEMENT ---

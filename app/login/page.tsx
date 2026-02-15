@@ -1,20 +1,28 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image"; 
-import { Loader2 } from "lucide-react"; 
+import Image from "next/image";
+import { Loader2 } from "lucide-react";
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { loginAction } from "../actions";
 
+// const initialState = {
+//   message: '',
+//   success: false,
+//   redirectUrl: ''
+// };
 const initialState = {
-  message: '',
+  message: "",
   success: false,
-  redirectUrl: ''
+  redirectUrl: "" as string | undefined,
 };
 
 export default function LoginPage() {
   const router = useRouter();
-  const [state, formAction, isPending] = useActionState(loginAction, initialState);
+  const [state, formAction, isPending] = useActionState(
+    loginAction,
+    initialState,
+  );
 
   useEffect(() => {
     if (state?.success && state?.redirectUrl) {
@@ -33,40 +41,66 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full flex justify-center mt-12 mb-8 relative z-10">
-         <Link href="/" className="text-4xl font-extrabold tracking-tighter flex items-center gap-3 group">
-            <Image 
-              src="/icon.png" 
-              alt="Castpotro Logo" 
-              width={70} 
-              height={70} 
-              className="object-contain group-hover:scale-110 transition-transform"
-            />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0ea5e9] to-pink-500">
-              castpotro
-            </span>
-         </Link>
+        <Link
+          href="/"
+          className="text-4xl font-extrabold tracking-tighter flex items-center gap-3 group"
+        >
+          <Image
+            src="/icon.png"
+            alt="Castpotro Logo"
+            width={70}
+            height={70}
+            className="object-contain group-hover:scale-110 transition-transform"
+          />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0ea5e9] to-pink-500">
+            castpotro
+          </span>
+        </Link>
       </div>
 
       {/* Login Card: Increased frosting (bg-white/70) */}
       <div className="w-full max-w-[375px] flex flex-col gap-6 text-center relative z-10 bg-white/70 backdrop-blur-xl p-8 rounded-[32px] border-2 border-white/50 shadow-2xl">
         <h2 className="text-2xl font-black text-slate-800">Log in</h2>
-        
+
         <form className="flex flex-col gap-4" action={formAction}>
-          <input type="email" name="email" placeholder="Email" className="input-field" required />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            className="input-field"
+            required
+          />
           <div className="relative">
-             <input type="password" name="password" placeholder="Password" className="input-field" required />
-             <div className="absolute right-4 top-4 text-slate-400 text-sm font-bold tracking-wider cursor-pointer hover:text-[#0ea5e9] transition-colors uppercase">
-                Forgot?
-             </div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              className="input-field"
+              required
+            />
+            <div className="absolute right-4 top-4 text-slate-400 text-sm font-bold tracking-wider cursor-pointer hover:text-[#0ea5e9] transition-colors uppercase">
+              Forgot?
+            </div>
           </div>
-          
+
           {state?.message && !state.success && (
-             <p className="text-pink-500 text-sm font-bold animate-pulse">{state.message}</p>
+            <p className="text-pink-500 text-sm font-bold animate-pulse">
+              {state.message}
+            </p>
           )}
 
-          <button disabled={isPending || state?.success} className="btn-primary w-full py-3 text-lg mt-2 shadow-xl shadow-sky-200 disabled:opacity-50 flex items-center justify-center gap-2">
-            {isPending || state?.success ? <Loader2 className="animate-spin" /> : null}
-            {isPending ? 'Logging in...' : state?.success ? 'Redirecting...' : 'Log in'}
+          <button
+            disabled={isPending || state?.success}
+            className="btn-primary w-full py-3 text-lg mt-2 shadow-xl shadow-sky-200 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isPending || state?.success ? (
+              <Loader2 className="animate-spin" />
+            ) : null}
+            {isPending
+              ? "Logging in..."
+              : state?.success
+                ? "Redirecting..."
+                : "Log in"}
           </button>
         </form>
 
@@ -77,12 +111,18 @@ export default function LoginPage() {
         </div>
 
         <div className="flex gap-4 justify-center">
-            <button type="button" className="btn-outline w-full py-3 flex items-center justify-center gap-2 text-[#3b5998] hover:bg-white/60">
-               Facebook
-            </button>
-             <button type="button" className="btn-outline w-full py-3 flex items-center justify-center gap-2 text-red-500 hover:bg-white/60">
-               Google
-            </button>
+          <button
+            type="button"
+            className="btn-outline w-full py-3 flex items-center justify-center gap-2 text-[#3b5998] hover:bg-white/60"
+          >
+            Facebook
+          </button>
+          <button
+            type="button"
+            className="btn-outline w-full py-3 flex items-center justify-center gap-2 text-red-500 hover:bg-white/60"
+          >
+            Google
+          </button>
         </div>
       </div>
     </div>

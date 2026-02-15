@@ -55,6 +55,34 @@ export async function registerAction(prevState: any, formData: FormData) {
 }
 
 // UPDATE THIS FUNCTION
+// export async function loginAction(prevState: any, formData: FormData) {
+//   const email = formData.get("email") as string;
+//   const password = formData.get("password") as string;
+
+//   try {
+//     const user = await prisma.user.findUnique({
+//       where: { email },
+//     });
+
+//     if (!user || !(await bcrypt.compare(password, user.password))) {
+//       return { success: false, message: "Invalid credentials" };
+//     }
+
+//     const cookieStore = await cookies();
+//     cookieStore.set("userId", user.id, { httpOnly: true, path: "/" });
+
+//     // --- ROLE BASED REDIRECT ---
+//     if (user.role === "USER") {
+//       return { success: true, redirectUrl: "/dashboard" };
+//     } else {
+//       // Admins, Instructors, etc. go to Admin Panel
+//       return { success: true, redirectUrl: "/admin" };
+//     }
+//   } catch (error) {
+//     console.error("Login error:", error);
+//     return { success: false, message: "Something went wrong." };
+//   }
+// }
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -65,22 +93,36 @@ export async function loginAction(prevState: any, formData: FormData) {
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return { success: false, message: "Invalid credentials" };
+      return {
+        success: false,
+        message: "Invalid credentials",
+        redirectUrl: undefined, // Explicitly include this
+      };
     }
 
     const cookieStore = await cookies();
     cookieStore.set("userId", user.id, { httpOnly: true, path: "/" });
 
-    // --- ROLE BASED REDIRECT ---
     if (user.role === "USER") {
-      return { success: true, redirectUrl: "/dashboard" };
+      return {
+        success: true,
+        redirectUrl: "/dashboard",
+        message: "", // Explicitly include this
+      };
     } else {
-      // Admins, Instructors, etc. go to Admin Panel
-      return { success: true, redirectUrl: "/admin" };
+      return {
+        success: true,
+        redirectUrl: "/admin",
+        message: "", // Explicitly include this
+      };
     }
   } catch (error) {
     console.error("Login error:", error);
-    return { success: false, message: "Something went wrong." };
+    return {
+      success: false,
+      message: "Something went wrong.",
+      redirectUrl: undefined, // Explicitly include this
+    };
   }
 }
 
@@ -285,40 +327,56 @@ export async function applyForJob(jobId: string) {
 }
 
 export async function hireApplicant(applicationId: string, jobId: string) {
-  try {
-    // Transaction: Mark application as HIRED, Close the Job
-    await prisma.$transaction([
-      prisma.application.update({
-        where: { id: applicationId },
-        data: { status: "HIRED" },
-      }),
-      prisma.job.update({
-        where: { id: jobId },
-        data: { isOpen: false }, // This removes it from the public board
-      }),
-    ]);
+  // try {
+  //   // Transaction: Mark application as HIRED, Close the Job
+  //   await prisma.$transaction([
+  //     prisma.application.update({
+  //       where: { id: applicationId },
+  //       data: { status: "HIRED" },
+  //     }),
+  //     prisma.job.update({
+  //       where: { id: jobId },
+  //       data: { isOpen: false }, // This removes it from the public board
+  //     }),
+  //   ]);
 
-    revalidatePath("/admin/jobs");
-    return { success: true };
-  } catch (error) {
-    console.error("Hiring error:", error);
-    return { success: false };
-  }
+  //   revalidatePath("/admin/jobs");
+  //   return { success: true };
+  // } catch (error) {
+  //   console.error("Hiring error:", error);
+  //   return { success: false };
+  // }
+  await prisma.application.update({
+    where: { id: applicationId },
+    data: { status: "HIRED" },
+  });
+
+  // Refresh the specific job page data
+  revalidatePath(`/admin/jobs/${jobId}`);
 }
 
-export async function rejectApplicant(applicationId: string) {
-  try {
-    await prisma.application.update({
-      where: { id: applicationId },
-      data: { status: "REJECTED" },
-    });
+// export async function rejectApplicant(applicationId: string) {
+//   try {
+//     await prisma.application.update({
+//       where: { id: applicationId },
+//       data: { status: "REJECTED" },
+//     });
 
-    revalidatePath("/admin/jobs");
-    return { success: true };
-  } catch (error) {
-    console.error("Rejection error:", error);
-    return { success: false };
-  }
+//     revalidatePath("/admin/jobs");
+//     return { success: true };
+//   } catch (error) {
+//     console.error("Rejection error:", error);
+//     return { success: false };
+//   }
+// }
+export async function rejectApplicant(appId: string, jobId: string) {
+  await prisma.application.update({
+    where: { id: appId },
+    data: { status: "REJECTED" },
+  });
+
+  // Refresh the specific job page data
+  revalidatePath(`/admin/jobs/${jobId}`);
 }
 
 // --- EVENT ACTIONS ---
