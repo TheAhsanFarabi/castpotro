@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Sparkles, Briefcase, Calendar, PlayCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getRecommendations, saveUserPlan } from '@/app/actions'; 
+import { getRecommendations } from '@/app/actions'; 
 
 const INTERESTS = [
   { id: "AI", label: "Artificial Intelligence", emoji: "🤖" },
@@ -55,17 +56,16 @@ export default function GetStartedPage() {
     }
   };
 
-  const handleSaveAndExit = async () => {
-    if (!recommendations) return;
-    setIsLoading(true);
-    try {
-        const courseIds = recommendations.courses.map((c: any) => c.id);
-        await saveUserPlan(courseIds);
-        router.push('/dashboard');
-    } catch (error) {
-        console.error("Failed to save", error);
-        router.push('/dashboard');
+  const handleSaveAndExit = () => {
+    // Redirect to register with interests and goal as query params
+    const params = new URLSearchParams();
+    if (selectedInterests.length > 0) {
+        params.append("interests", selectedInterests.join(","));
     }
+    if (selectedGoal) {
+        params.append("goal", selectedGoal);
+    }
+    router.push(`/register?${params.toString()}`);
   };
 
   return (
@@ -215,7 +215,7 @@ export default function GetStartedPage() {
                             <h2 className="text-3xl font-black text-slate-800">Your Personal Plan</h2>
                             <p className="text-slate-500 font-medium">Based on your interest in <span className="text-[#0ea5e9] font-bold">{selectedInterests.join(", ")}</span>.</p>
                         </div>
-                        <button onClick={handleSaveAndExit} className="text-sm font-bold text-slate-400 hover:text-[#0ea5e9] underline">Skip to Dashboard</button>
+                        <button onClick={handleSaveAndExit} className="text-sm font-bold text-slate-400 hover:text-[#0ea5e9] underline">Skip to Signup</button>
                     </div>
 
                     <div className="grid lg:grid-cols-3 gap-6 h-[400px] overflow-y-auto custom-scrollbar pr-2">
@@ -280,15 +280,7 @@ export default function GetStartedPage() {
                         disabled={isLoading}
                         className="w-full mt-6 py-4 bg-gradient-to-r from-[#0ea5e9] to-pink-500 text-white rounded-2xl font-extrabold text-lg shadow-xl shadow-sky-200 hover:shadow-pink-200 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="animate-spin" size={20} /> Saving Profile...
-                            </>
-                        ) : (
-                            <>
-                                Save Profile & Enter Dashboard <ArrowRight size={20} />
-                            </>
-                        )}
+                        Create Account to Save Plan <ArrowRight size={20} />
                     </button>
                 </motion.div>
             )}

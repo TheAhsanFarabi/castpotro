@@ -1,6 +1,8 @@
+
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   Shield,
   Zap,
@@ -16,10 +18,7 @@ import {
   Trophy,
 } from "lucide-react";
 
-// ... (Keep UserAvatar, RankChangeIcon, and UserRow components exactly as they were) ...
-// (I will omit them here to save space, just copy them from your previous file)
-
-// --- Helpers (Paste these back in if you are replacing the whole file) ---
+// --- HELPERS ---
 const RankChangeIcon = ({ trend }: { trend: string }) => {
   if (trend === "up") return <ChevronUp size={16} className="text-green-500" />;
   if (trend === "down")
@@ -45,6 +44,7 @@ const UserAvatar = ({ name, rank }: { name: string; rank: number }) => {
   );
 };
 
+// --- USER ROW COMPONENT (Now Clickable) ---
 const UserRow = ({
   user,
   rank,
@@ -79,9 +79,13 @@ const UserRow = ({
 
   const trend = isMe ? "up" : ["up", "down", "same"][user.id.charCodeAt(0) % 3];
 
+  // If it's me, go to main profile; if others, go to public profile
+  const profileLink = isMe ? "/dashboard/profile" : `/dashboard/profile/${user.id}`;
+
   return (
-    <div
-      className={`group flex items-center gap-4 md:gap-6 p-4 rounded-2xl border-b-[3px] transition-all hover:shadow-md hover:-translate-y-0.5 w-full ${rankStyle}`}
+    <Link
+      href={profileLink}
+      className={`group flex items-center gap-4 md:gap-6 p-4 rounded-2xl border-b-[3px] transition-all hover:shadow-md hover:-translate-y-0.5 w-full cursor-pointer ${rankStyle}`}
     >
       <div
         className={`w-10 text-center flex flex-col items-center justify-center shrink-0 ${textStyle}`}
@@ -131,7 +135,7 @@ const UserRow = ({
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -140,7 +144,7 @@ export default function RankClient({
   leaderboard,
   currentUser,
   streak,
-  weeklyXP, // 👈 NEW PROP
+  weeklyXP,
 }: {
   leaderboard: any[];
   currentUser: any;
@@ -252,7 +256,7 @@ export default function RankClient({
           </div>
         </div>
 
-        {/* Widget 2: Weekly Goal (FUNCTIONAL) */}
+        {/* Widget 2: Weekly Goal */}
         <div className="bg-white rounded-2xl border-2 border-slate-100 p-5 shadow-sm">
           <h3 className="font-bold text-slate-700 mb-3 flex items-center justify-between">
             <span>Weekly Goal</span>

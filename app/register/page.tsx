@@ -5,13 +5,53 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { registerAction } from '../actions';
 import confetti from 'canvas-confetti';
-import { ArrowLeft, Loader2 } from 'lucide-react'; 
+import { ArrowLeft, Loader2, School, Globe } from 'lucide-react'; 
 import { motion } from 'framer-motion';
 
 const initialState = {
   message: '',
   success: false,
 };
+
+// --- DATA: ALPHABETICAL COUNTRY LIST ---
+const COUNTRIES = [
+  { name: "Australia", flag: "🇦🇺" },
+  { name: "Austria", flag: "🇦🇹" },
+  { name: "Bangladesh", flag: "🇧🇩" },
+  { name: "Belgium", flag: "🇧🇪" },
+  { name: "Brazil", flag: "🇧🇷" },
+  { name: "Canada", flag: "🇨🇦" },
+  { name: "China", flag: "🇨🇳" },
+  { name: "Denmark", flag: "🇩🇰" },
+  { name: "Finland", flag: "🇫🇮" },
+  { name: "France", flag: "🇫🇷" },
+  { name: "Germany", flag: "🇩🇪" },
+  { name: "Greece", flag: "🇬🇷" },
+  { name: "India", flag: "🇮🇳" },
+  { name: "Ireland", flag: "🇮🇪" },
+  { name: "Italy", flag: "🇮🇹" },
+  { name: "Japan", flag: "🇯🇵" },
+  { name: "Kazakhstan", flag: "🇰🇿" },
+  { name: "Malaysia", flag: "🇲🇾" },
+  { name: "Netherlands", flag: "🇳🇱" },
+  { name: "Nigeria", flag: "🇳🇬" },
+  { name: "Norway", flag: "🇳🇴" },
+  { name: "Pakistan", flag: "🇵🇰" },
+  { name: "Poland", flag: "🇵🇱" },
+  { name: "Portugal", flag: "🇵🇹" },
+  { name: "Qatar", flag: "🇶🇦" },
+  { name: "Saudi Arabia", flag: "🇸🇦" },
+  { name: "Singapore", flag: "🇸🇬" },
+  { name: "South Africa", flag: "🇿🇦" },
+  { name: "Spain", flag: "🇪🇸" },
+  { name: "Sweden", flag: "🇸🇪" },
+  { name: "Switzerland", flag: "🇨🇭" },
+  { name: "Turkey", flag: "🇹🇷" },
+  { name: "Ukraine", flag: "🇺🇦" },
+  { name: "United Arab Emirates", flag: "🇦🇪" },
+  { name: "United Kingdom", flag: "🇬🇧" },
+  { name: "United States", flag: "🇺🇸" },
+];
 
 // --- TYPEWRITER COMPONENT ---
 const Typewriter = ({ text, speed = 100, delay = 2000 }: { text: string[], speed?: number, delay?: number }) => {
@@ -54,33 +94,24 @@ const Typewriter = ({ text, speed = 100, delay = 2000 }: { text: string[], speed
 };
 
 // --- MAIN REGISTER PAGE COMPONENT ---
-// Exporting directly as default function to avoid "not a React Component" errors
 export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(registerAction, initialState);
   const router = useRouter();
 
+  // State for dynamic University fetching
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [universityList, setUniversityList] = useState<string[]>([]);
+  const [isLoadingUnis, setIsLoadingUnis] = useState(false);
+
+  // Confetti Effect on Success
   useEffect(() => {
     if (state?.success) {
-      // Confetti Effect - Blue & Pink
       const end = Date.now() + 3 * 1000; 
       const colors = ['#0ea5e9', '#ec4899', '#ffffff'];
 
       (function frame() {
-        confetti({
-          particleCount: 3,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: colors
-        });
-        confetti({
-          particleCount: 3,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: colors
-        });
-
+        confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors });
+        confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors });
         if (Date.now() < end) requestAnimationFrame(frame);
       }());
 
@@ -88,10 +119,39 @@ export default function RegisterPage() {
     }
   }, [state?.success, router]);
 
+  // Fetch Universities when Country changes
+  useEffect(() => {
+    if (!selectedCountry) {
+        setUniversityList([]);
+        return;
+    }
+
+    const fetchUniversities = async () => {
+        setIsLoadingUnis(true);
+        try {
+            // Using Hipolabs free public API
+            const response = await fetch(`http://universities.hipolabs.com/search?country=${encodeURIComponent(selectedCountry)}`);
+            const data = await response.json();
+            const names = data.map((u: any) => u.name);
+            // Remove duplicates and sort
+            setUniversityList([...new Set(names)].sort() as string[]);
+        } catch (error) {
+            console.error("Failed to fetch universities", error);
+        } finally {
+            setIsLoadingUnis(false);
+        }
+    };
+
+    // Debounce slightly to avoid rapid calls
+    const timeoutId = setTimeout(() => fetchUniversities(), 500);
+    return () => clearTimeout(timeoutId);
+
+  }, [selectedCountry]);
+
   return (
     <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24 p-6 min-h-screen relative">
       
-      {/* --- LOGO: Top Left --- */}
+      {/* --- LOGO --- */}
       <div className="absolute top-6 left-6 z-50">
          <Link href="/" className="flex items-center gap-3 group">
             <Image 
@@ -121,14 +181,74 @@ export default function RegisterPage() {
 
           <div className="flex flex-col items-start mb-6">
               <h2 className="text-3xl font-black text-slate-800">Create Profile</h2>
-              <p className="text-slate-500 font-medium">Join us and start your streak.</p>
+              <p className="text-slate-500 font-medium">Join our global community.</p>
           </div>
           
           <form className="flex flex-col gap-4" action={formAction}>
+              
+              {/* Row 1: Name & DOB */}
               <div className="grid grid-cols-2 gap-4">
-                  <input type="text" name="age" placeholder="Age" className="input-field" required />
-                  <input type="text" name="name" placeholder="Name" className="input-field" />
+                  <input type="text" name="name" placeholder="Full Name" className="input-field" required />
+                  
+                  {/* Date of Birth Input */}
+                  <div className="relative group">
+                      <input 
+                        type="date" 
+                        name="dob" 
+                        className="input-field w-full text-slate-500 valid:text-slate-800 pt-3" 
+                        required 
+                      />
+                      <label className="absolute -top-1.5 left-3 bg-white px-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider group-focus-within:text-[#0ea5e9] transition-colors">
+                        Date of Birth
+                      </label>
+                  </div>
               </div>
+
+              {/* Row 2: Country Select */}
+              <div className="relative">
+                  <select 
+                    name="country" 
+                    className="input-field w-full bg-white appearance-none" 
+                    required 
+                    defaultValue=""
+                    onChange={(e) => setSelectedCountry(e.target.value)}
+                  >
+                      <option value="" disabled>Select Country</option>
+                      {COUNTRIES.map((c) => (
+                          <option key={c.name} value={c.name}>
+                              {c.flag} {c.name}
+                          </option>
+                      ))}
+                      <option value="Other">🌍 Other</option>
+                  </select>
+                  <Globe className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+              </div>
+
+              {/* Row 3: Dynamic University Search */}
+              <div className="relative">
+                  <input 
+                    type="text" 
+                    name="university" 
+                    list="university-list"
+                    placeholder={selectedCountry ? `Search universities in ${selectedCountry}...` : "Select a country first"}
+                    className="input-field w-full"
+                    required 
+                    disabled={!selectedCountry}
+                  />
+                  
+                  {/* Icon or Loader */}
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      {isLoadingUnis ? <Loader2 className="animate-spin" size={18}/> : <School size={18} />}
+                  </div>
+
+                  {/* HTML Datalist for Native Autocomplete */}
+                  <datalist id="university-list">
+                      {universityList.map((uni, idx) => (
+                          <option key={idx} value={uni} />
+                      ))}
+                  </datalist>
+              </div>
+
               <input type="email" name="email" placeholder="Email Address" className="input-field" required />
               <input type="password" name="password" placeholder="Password" className="input-field" required />
               

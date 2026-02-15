@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link"; // Added Link import
+import Link from "next/link";
 import {
   Zap,
   Flame,
@@ -25,16 +25,18 @@ import {
   Palette,
   FileDown,
   LayoutTemplate,
-  Image as ImageIcon,
+  ImageIcon,
   Camera,
   Sparkles,
   Loader2,
+  Upload
 } from "lucide-react";
 import { useState, Suspense, useEffect } from "react";
 import {
   getFullUserProfile,
   updateAppearance,
   updateProfileDetails,
+  uploadProfileImage
 } from "@/app/actions/profile";
 import { getUserStreak } from "@/app/actions/quests"; 
 import StreakWidget from "@/app/components/StreakWidget"; 
@@ -55,42 +57,58 @@ function ProfileCustomizer({
   onSave,
   currentAvatar,
   currentBanner,
+  currentImage, 
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (avatar: AvatarData, banner: BannerData) => void;
+  onSave: (avatar: AvatarData, banner: BannerData, clearImage: boolean) => void;
   currentAvatar: AvatarData;
   currentBanner: BannerData;
+  currentImage?: string | null;
 }) {
-  const [activeTab, setActiveTab] = useState<"avatar" | "banner">("avatar");
+  const [activeTab, setActiveTab] = useState<"avatar" | "banner" | "upload">("avatar");
   const [localAvatar, setLocalAvatar] = useState<AvatarData>(currentAvatar);
   const [localBanner, setLocalBanner] = useState<BannerData>(currentBanner);
   const [isVisible, setIsVisible] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setIsRendered(true);
       setLocalAvatar(currentAvatar);
       setLocalBanner(currentBanner);
+      
+      if (currentImage) {
+        setActiveTab("upload");
+      } else {
+        setActiveTab("avatar");
+      }
+
       setTimeout(() => setIsVisible(true), 10);
     } else {
       setIsVisible(false);
       setTimeout(() => setIsRendered(false), 300);
     }
-  }, [isOpen, currentAvatar, currentBanner]);
+  }, [isOpen, currentAvatar, currentBanner, currentImage]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", e.target.files[0]);
+    
+    await uploadProfileImage(formData);
+    setIsUploading(false);
+    onClose(); 
+    window.location.reload(); 
+  };
 
   if (!isRendered) return null;
 
   const AVATAR_COLORS = [
-    "bg-[#0ea5e9]",
-    "bg-rose-500",
-    "bg-orange-500",
-    "bg-emerald-500",
-    "bg-purple-600",
-    "bg-slate-800",
-    "bg-indigo-500",
-    "bg-pink-500",
+    "bg-[#0ea5e9]", "bg-rose-500", "bg-orange-500", "bg-emerald-500", 
+    "bg-purple-600", "bg-slate-800", "bg-indigo-500", "bg-pink-500",
   ];
   const SHAPES = [
     { name: "Circle", class: "rounded-full" },
@@ -133,13 +151,16 @@ function ProfileCustomizer({
             <button onClick={() => setActiveTab("avatar")} className={`flex-1 py-2.5 font-bold text-sm rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${activeTab === "avatar" ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
               <Smile size={16} /> Avatar
             </button>
+            <button onClick={() => setActiveTab("upload")} className={`flex-1 py-2.5 font-bold text-sm rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${activeTab === "upload" ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
+              <Upload size={16} /> Upload
+            </button>
             <button onClick={() => setActiveTab("banner")} className={`flex-1 py-2.5 font-bold text-sm rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${activeTab === "banner" ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
               <LayoutTemplate size={16} /> Banner
             </button>
           </div>
         </div>
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-          {activeTab === "avatar" ? (
+          {activeTab === "avatar" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="flex justify-center py-8 bg-slate-50 rounded-3xl border-2 border-slate-100 border-dashed relative overflow-hidden">
                 <div className={`w-32 h-32 ${localAvatar.color} ${localAvatar.shape} border-[6px] border-white shadow-2xl flex items-center justify-center text-5xl font-black text-white transition-all duration-300 scale-110`}>
@@ -151,7 +172,7 @@ function ProfileCustomizer({
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">Color</label>
                   <div className="flex flex-wrap gap-3">
                     {AVATAR_COLORS.map((c) => (
-                      <button key={c} onClick={() => setLocalAvatar({ ...localAvatar, color: c })} className={`w-10 h-10 rounded-full ${c} border-4 transition-all duration-200 hover:scale-110 ${localAvatar.color === c ? "border-slate-300 scale-110 ring-2 ring-[#0ea5e9] ring-offset-2" : "border-transparent"}`} />
+                      <button key={c} type="button" onClick={() => setLocalAvatar({ ...localAvatar, color: c })} className={`w-10 h-10 rounded-full ${c} border-4 transition-all duration-200 hover:scale-110 ${localAvatar.color === c ? "border-slate-300 scale-110 ring-2 ring-[#0ea5e9] ring-offset-2" : "border-transparent"}`} />
                     ))}
                   </div>
                 </div>
@@ -159,7 +180,7 @@ function ProfileCustomizer({
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">Shape</label>
                   <div className="flex gap-3">
                     {SHAPES.map((s) => (
-                      <button key={s.name} onClick={() => setLocalAvatar({ ...localAvatar, shape: s.class })} className={`h-10 flex-1 bg-white border-2 rounded-xl font-bold text-slate-600 text-xs transition-all hover:border-[#0ea5e9] ${localAvatar.shape === s.class ? "border-[#0ea5e9] bg-sky-50 text-[#0ea5e9]" : "border-slate-200"}`}>
+                      <button key={s.name} type="button" onClick={() => setLocalAvatar({ ...localAvatar, shape: s.class })} className={`h-10 flex-1 bg-white border-2 rounded-xl font-bold text-slate-600 text-xs transition-all hover:border-[#0ea5e9] ${localAvatar.shape === s.class ? "border-[#0ea5e9] bg-sky-50 text-[#0ea5e9]" : "border-slate-200"}`}>
                         {s.name}
                       </button>
                     ))}
@@ -169,7 +190,7 @@ function ProfileCustomizer({
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">Icon</label>
                   <div className="grid grid-cols-6 gap-2">
                     {EMOJIS.map((e) => (
-                      <button key={e} onClick={() => setLocalAvatar({ ...localAvatar, icon: e })} className={`aspect-square flex items-center justify-center text-xl bg-white border-2 rounded-xl transition-all hover:scale-110 ${localAvatar.icon === e ? "border-[#0ea5e9] bg-sky-50" : "border-slate-200"}`}>
+                      <button key={e} type="button" onClick={() => setLocalAvatar({ ...localAvatar, icon: e })} className={`aspect-square flex items-center justify-center text-xl bg-white border-2 rounded-xl transition-all hover:scale-110 ${localAvatar.icon === e ? "border-[#0ea5e9] bg-sky-50" : "border-slate-200"}`}>
                         {e}
                       </button>
                     ))}
@@ -177,19 +198,67 @@ function ProfileCustomizer({
                 </div>
               </div>
             </div>
-          ) : (
+          )}
+
+          {activeTab === "upload" && (
+            <div className="flex flex-col items-center justify-center py-10 space-y-6 text-center animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="w-full h-48 border-2 border-dashed border-slate-300 rounded-3xl flex flex-col items-center justify-center bg-slate-50 hover:bg-sky-50 hover:border-sky-300 transition-all group relative overflow-hidden">
+                    {currentImage && !isUploading ? (
+                        <div className="absolute inset-0 z-10 w-full h-full">
+                            <img src={currentImage} alt="Current" className="w-full h-full object-cover opacity-50 group-hover:opacity-30 transition-opacity" />
+                        </div>
+                    ) : null}
+
+                    <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="absolute inset-0 opacity-0 cursor-pointer z-20"
+                        disabled={isUploading}
+                    />
+                    {isUploading ? (
+                        <Loader2 className="animate-spin text-[#0ea5e9]" size={40} />
+                    ) : (
+                        <div className="relative z-20 flex flex-col items-center">
+                            <div className="p-4 bg-white rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
+                                <Camera size={32} className="text-slate-400 group-hover:text-[#0ea5e9]" />
+                            </div>
+                            <p className="font-bold text-slate-600">
+                                {currentImage ? "Change Photo" : "Click to Upload Photo"}
+                            </p>
+                            <p className="text-xs text-slate-400 font-medium">JPG, PNG, GIF up to 5MB</p>
+                        </div>
+                    )}
+                </div>
+                <div className="bg-sky-50 border border-sky-100 p-4 rounded-xl text-left flex gap-3">
+                    <div className="mt-0.5"><Sparkles size={16} className="text-[#0ea5e9]" /></div>
+                    <p className="text-xs text-sky-800 font-medium">
+                        Uploading a real photo will replace your animated avatar. Switch back to the "Avatar" tab and save to restore your Casty avatar.
+                    </p>
+                </div>
+            </div>
+          )}
+
+          {activeTab === "banner" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="rounded-3xl overflow-hidden relative shadow-lg border-2 border-slate-100 bg-white">
                 <div className="h-32 w-full transition-all duration-500" style={localBanner.style} />
                 <div className="absolute -bottom-8 left-6">
-                  <div className={`w-20 h-20 ${localAvatar.color} ${localAvatar.shape} border-4 border-white shadow-md flex items-center justify-center text-2xl font-black text-white`}>
-                    {localAvatar.icon}
-                  </div>
+                  {/* FIX: Removed the redundant 'activeTab !== avatar' check that caused build failure */}
+                  {currentImage ? (
+                     <div className="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-white">
+                        <img src={currentImage} alt="Profile" className="w-full h-full object-cover" />
+                     </div>
+                  ) : (
+                    <div className={`w-20 h-20 ${localAvatar.color} ${localAvatar.shape} border-4 border-white shadow-md flex items-center justify-center text-2xl font-black text-white`}>
+                      {localAvatar.icon}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {BANNERS.map((b) => (
-                  <button key={b.name} onClick={() => setLocalBanner(b)} className={`relative h-24 rounded-2xl overflow-hidden border-4 transition-all duration-300 hover:scale-[1.02] group ${localBanner.name === b.name ? "border-[#0ea5e9] shadow-md ring-2 ring-sky-100" : "border-transparent shadow-sm"}`}>
+                  <button key={b.name} type="button" onClick={() => setLocalBanner(b)} className={`relative h-24 rounded-2xl overflow-hidden border-4 transition-all duration-300 hover:scale-[1.02] group ${localBanner.name === b.name ? "border-[#0ea5e9] shadow-md ring-2 ring-sky-100" : "border-transparent shadow-sm"}`}>
                     <div className="absolute inset-0" style={b.style} />
                     <span className="absolute bottom-2 left-2 text-[10px] font-bold text-white uppercase tracking-wider bg-black/20 backdrop-blur-md px-2 py-1 rounded-lg">{b.name}</span>
                     {localBanner.name === b.name && (
@@ -203,11 +272,21 @@ function ProfileCustomizer({
             </div>
           )}
         </div>
-        <div className="p-6 pt-4 border-t border-slate-100 bg-slate-50">
-          <button onClick={() => { onSave(localAvatar, localBanner); onClose(); }} className="w-full py-3.5 bg-[#0ea5e9] text-white rounded-xl font-extrabold text-sm uppercase tracking-wide shadow-lg shadow-sky-200 hover:bg-sky-500 hover:shadow-sky-300 hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2">
-            <Save size={18} /> Save Changes
-          </button>
-        </div>
+        
+        {activeTab !== "upload" && (
+            <div className="p-6 pt-4 border-t border-slate-100 bg-slate-50">
+            <button 
+                type="button"
+                onClick={() => { 
+                    onSave(localAvatar, localBanner, activeTab === "avatar"); 
+                    onClose(); 
+                }} 
+                className="w-full py-3.5 bg-[#0ea5e9] text-white rounded-xl font-extrabold text-sm uppercase tracking-wide shadow-lg shadow-sky-200 hover:bg-sky-500 hover:shadow-sky-300 hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"
+            >
+                <Save size={18} /> Save Changes
+            </button>
+            </div>
+        )}
       </div>
     </div>
   );
@@ -219,7 +298,6 @@ function ProfileContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
-  // State for User Data
   const [avatar, setAvatar] = useState<AvatarData>({ color: "bg-[#0ea5e9]", shape: "rounded-full", icon: "👤" });
   const [banner, setBanner] = useState<BannerData>({ type: "gradient", style: { background: "linear-gradient(to right, #06b6d4, #3b82f6)" }, name: "Ocean" });
   const [profile, setProfile] = useState<any>({});
@@ -227,7 +305,6 @@ function ProfileContent() {
   const [certificates, setCertificates] = useState<any[]>([]);
   const [streakData, setStreakData] = useState<{ streak: number; weekActivity: boolean[] }>({ streak: 0, weekActivity: Array(7).fill(false) });
 
-  // Fetch Data on Mount
   useEffect(() => {
     async function loadData() {
       const data = await getFullUserProfile();
@@ -249,10 +326,14 @@ function ProfileContent() {
     loadData();
   }, []);
 
-  const handleAppearanceSave = async (newAvatar: AvatarData, newBanner: BannerData) => {
+  const handleAppearanceSave = async (newAvatar: AvatarData, newBanner: BannerData, clearImage: boolean) => {
     setAvatar(newAvatar);
     setBanner(newBanner);
-    await updateAppearance(newAvatar, newBanner);
+    await updateAppearance(newAvatar, newBanner, clearImage);
+    
+    if (clearImage) {
+        window.location.reload(); 
+    }
   };
 
   const handleProfileSave = async () => {
@@ -267,23 +348,19 @@ function ProfileContent() {
 
     doc.setFillColor(14, 165, 233);
     doc.rect(0, 0, pageWidth, 50, "F");
-
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(28);
     doc.text(profile.name || "User", 20, 25);
-
     doc.setFontSize(14);
     doc.setFont("helvetica", "normal");
     doc.text(profile.handle || "", 20, 35);
-
     doc.setFontSize(10);
     doc.text(`XP: ${profile.xp || 0}`, pageWidth - 50, 20);
     doc.text(`League: ${profile.league || "Bronze"}`, pageWidth - 50, 26);
     doc.text(`Completed: ${activities.length} Acts`, pageWidth - 50, 32);
 
     let yPos = 70;
-
     doc.setTextColor(51, 65, 85);
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
@@ -292,13 +369,11 @@ function ProfileContent() {
     doc.setDrawColor(200, 200, 200);
     doc.line(20, yPos + 2, pageWidth - 20, yPos + 2);
     yPos += 15;
-
     doc.setFont("helvetica", "normal");
     doc.text(`Email: ${profile.email}`, 20, yPos);
     yPos += 8;
     doc.text(`Location: ${profile.location || "Not set"}`, 20, yPos);
     yPos += 20;
-
     doc.setFont("helvetica", "bold");
     doc.text("ABOUT ME", 20, yPos);
     doc.line(20, yPos + 2, pageWidth - 20, yPos + 2);
@@ -314,7 +389,6 @@ function ProfileContent() {
       doc.line(20, yPos + 2, pageWidth - 20, yPos + 2);
       yPos += 15;
       doc.setFont("helvetica", "normal");
-
       certificates.forEach((cert) => {
         doc.text(`• ${cert.title}`, 25, yPos);
         doc.setFontSize(9);
@@ -332,7 +406,6 @@ function ProfileContent() {
     doc.line(20, yPos + 2, pageWidth - 20, yPos + 2);
     yPos += 15;
     doc.setFont("helvetica", "normal");
-
     activities.slice(0, 5).forEach((act) => {
       const dateStr = new Date(act.date).toLocaleDateString();
       doc.text(`• [${act.type}] ${act.title} (${dateStr})`, 25, yPos);
@@ -346,7 +419,14 @@ function ProfileContent() {
 
   return (
     <div className="flex w-full h-full">
-      <ProfileCustomizer isOpen={isCustomizerOpen} onClose={() => setIsCustomizerOpen(false)} onSave={handleAppearanceSave} currentAvatar={avatar} currentBanner={banner} />
+      <ProfileCustomizer 
+        isOpen={isCustomizerOpen} 
+        onClose={() => setIsCustomizerOpen(false)} 
+        onSave={handleAppearanceSave} 
+        currentAvatar={avatar} 
+        currentBanner={banner} 
+        currentImage={profile.image} 
+      />
 
       <div className="flex-1 overflow-y-auto bg-white relative scroll-smooth min-w-0">
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
@@ -388,8 +468,17 @@ function ProfileContent() {
             <div className="h-48 w-full relative transition-all duration-700 group-hover:scale-[1.01]" style={banner.style} />
             <div className="px-8 pb-8 flex flex-col md:flex-row items-center md:items-end gap-6 -mt-12 relative z-10">
               <div className="relative group/avatar cursor-pointer shrink-0" onClick={() => setIsCustomizerOpen(true)}>
-                <div className={`w-36 h-36 ${avatar.color} ${avatar.shape} border-[6px] border-white shadow-xl flex items-center justify-center text-white text-5xl font-black transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/scale-105 group-hover/rotate-3`}>
-                  {avatar.icon}
+                {profile.image ? (
+                   <div className="w-36 h-36 rounded-full border-[6px] border-white shadow-xl overflow-hidden bg-white">
+                      <img src={profile.image} alt="Profile" className="w-full h-full object-cover" />
+                   </div>
+                ) : (
+                    <div className={`w-36 h-36 ${avatar.color} ${avatar.shape} border-[6px] border-white shadow-xl flex items-center justify-center text-5xl font-black text-white transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/scale-105 group-hover/rotate-3`}>
+                      {avatar.icon}
+                    </div>
+                )}
+                 <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity text-white font-bold text-xs backdrop-blur-[2px] pointer-events-none">
+                    <Camera size={24} />
                 </div>
               </div>
               <div className="flex-1 text-center md:text-left space-y-2 w-full pt-6 md:pt-0 mb-2 relative z-20">
@@ -416,7 +505,6 @@ function ProfileContent() {
             </div>
           </div>
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div className="border-2 border-slate-100 rounded-2xl p-5 flex flex-col items-center gap-2 bg-white shadow-sm hover:border-orange-200 hover:-translate-y-1 hover:shadow-orange-100/50 hover:shadow-lg transition-all duration-300 group cursor-default">
               <div className="bg-orange-50 p-3 rounded-full group-hover:scale-110 transition-transform duration-300"><Flame size={24} className="text-orange-500" fill="currentColor" /></div>
@@ -436,7 +524,6 @@ function ProfileContent() {
             </div>
           </div>
 
-          {/* 3. Certifications Section - UPDATED WITH MINT BUTTON */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-extrabold text-slate-700">Certifications</h3>
@@ -458,7 +545,6 @@ function ProfileContent() {
                       <p className="text-xs text-slate-400 font-bold mt-1 uppercase tracking-wide">{cert.issuer}</p>
                       <p className="text-xs text-slate-400 font-medium mt-0.5">ID: {cert.credentialId}</p>
                       
-                      {/* --- UPDATED BUTTON LOGIC --- */}
                       <div className="flex gap-2 mt-3">
                         {cert.txHash ? (
                           <a 
@@ -470,7 +556,6 @@ function ProfileContent() {
                             <CheckCircle size={12} /> Verified On-Chain
                           </a>
                         ) : (
-                          // Renders the button to connect wallet and mint
                           <MintCertificateButton enrollmentId={cert.enrollmentId} />
                         )}
                       </div>
@@ -545,7 +630,6 @@ function ProfileContent() {
       <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-slate-50/50 p-8 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-8 shrink-0 border-l-2 border-slate-100">
         <StreakWidget streak={streakData.streak} weekActivity={streakData.weekActivity} />
         
-        {/* --- REPLACED: Invite Friends -> Castpotro Plus Promo --- */}
         <Link href="/dashboard/plus">
           <div className="bg-gradient-to-br from-[#0ea5e9] to-pink-500 rounded-3xl p-6 text-center relative overflow-hidden group hover:shadow-xl hover:shadow-pink-200 transition-all duration-300 cursor-pointer">
             <div className="relative z-10 text-white">

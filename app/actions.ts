@@ -7,14 +7,19 @@ import { cookies } from "next/headers";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { revalidatePath } from "next/cache";
 
-// --- 1. REGISTER ACTION (Modified for Confetti) ---
+// --- 1. REGISTER ACTION ---
 export async function registerAction(prevState: any, formData: FormData) {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const age = formData.get("age") as string;
+  const dobString = formData.get("dob") as string; // Get value like "2000-01-01"
 
-  if (!email || !password || !age) {
+  
+  // NEW: Get the new fields
+  const country = formData.get("country") as string;
+  const university = formData.get("university") as string;
+
+  if (!email || !password || !dobString || !country || !university) { // Added validation
     return { success: false, message: "Please fill in all required fields" };
   }
 
@@ -34,16 +39,16 @@ export async function registerAction(prevState: any, formData: FormData) {
         email,
         password: hashedPassword,
         name: name || "",
-        age,
+        dob: new Date(dobString),
+        // NEW: Save to database
+        country,
+        university,
       },
     });
 
-    // Create session
     const cookieStore = await cookies();
     cookieStore.set("userId", user.id, { httpOnly: true, path: "/" });
 
-    // CRITICAL CHANGE: We return success instead of redirecting.
-    // This allows the Client Component to show the Confetti first.
     return { success: true, message: "Account created successfully!" };
   } catch (error) {
     console.error("Registration error:", error);

@@ -25,15 +25,18 @@ model User {
   id          String       @id @default(cuid())
   email       String       @unique
   name        String?
-  age         String?
+  dob         DateTime?
   password    String
   role        Role         @default(USER)
   coins       Int          @default(100) // Starting balance
   xp          Int          @default(0)
   bio          String?   @db.Text
   location     String?
+  country     String?      
+  university  String?      
   avatarConfig Json?     
   bannerConfig Json?
+  image       String?
   
   // Relations
   enrollments Enrollment[]

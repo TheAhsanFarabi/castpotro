@@ -3,25 +3,29 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
 
-// --- 1. GET FULL PROFILE & ACTIVITY ---
+// --- 1. GET FULL PROFILE (CURRENT USER) ---
 export async function getFullUserProfile() {
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
   if (!userId) return null;
+  return getPublicUserProfile(userId);
+}
 
+// --- 2. GET PUBLIC PROFILE (ANY USER) ---
+export async function getPublicUserProfile(userId: string) {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        // Fetch Course Progress for Certificates
         enrollments: {
           include: {
             course: true,
             completedLessons: true,
           },
         },
-        // Fetch Activity Data
         questSubmissions: {
           where: { status: "APPROVED" },
           take: 5,
@@ -38,17 +42,11 @@ export async function getFullUserProfile() {
 
     if (!user) return null;
 
-    // --- LOGIC: GENERATE CERTIFICATES ---
-    // A course is "Certified" if user completed all lessons (simplified logic for now)
-    // Or if progress > 90%
     const certificates = user.enrollments
       .filter((e) => e.progress >= 90 || e.completedLessons.length > 0)
       .map((e) => ({
         id: e.course.id,
-        
-        // 👇 CRITICAL FIX: ID for the database update
-        enrollmentId: e.id, 
-
+        enrollmentId: e.id,
         title: e.course.title,
         issuer: "Castpotro Academy",
         issueDate: new Date(e.createdAt).toLocaleDateString("en-US", {
@@ -56,17 +54,11 @@ export async function getFullUserProfile() {
           day: "numeric",
           year: "numeric",
         }),
-        // Generate a fake Credential ID for display
         credentialId: `CP-${e.course.title.substring(0, 3).toUpperCase()}-${user.id.substring(0, 4)}-${Date.now().toString().substring(8)}`,
-        
-        // 👇 CRITICAL FIX: Hash for the UI state
-        txHash: e.certificateHash || null, 
-        
+        txHash: e.certificateHash || null,
         skills: "Soft Skills, " + e.course.title,
       }));
 
-    // --- LOGIC: COMPILE RECENT ACTIVITY ---
-    // Merge Quests, Events, and Course progress into one timeline
     const activities = [
       ...user.questSubmissions.map((q) => ({
         id: q.id,
@@ -80,7 +72,7 @@ export async function getFullUserProfile() {
         type: "EVENT",
         title: `Registered for: ${e.event.title}`,
         date: e.createdAt,
-        xp: "+10 XP", // Base reward for registering
+        xp: "+10 XP",
       })),
       ...user.enrollments.flatMap((e) =>
         e.completedLessons.map((l) => ({
@@ -93,9 +85,8 @@ export async function getFullUserProfile() {
       ),
     ]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 10); // Top 10 activities
+      .slice(0, 10);
 
-    // --- LOGIC: LEAGUE CALCULATION ---
     let league = "Bronze";
     if (user.xp > 500) league = "Silver";
     if (user.xp > 1000) league = "Gold";
@@ -114,6 +105,7 @@ export async function getFullUserProfile() {
         xp: user.xp,
         league,
         coins: user.coins,
+        image: user.image,
         avatar: (user.avatarConfig as any) || {
           color: "bg-[#0ea5e9]",
           shape: "rounded-full",
@@ -134,25 +126,66 @@ export async function getFullUserProfile() {
   }
 }
 
-// --- 2. UPDATE APPEARANCE ---
-export async function updateAppearance(avatar: any, banner: any) {
+// --- 3. UPLOAD PROFILE IMAGE ---
+export async function uploadProfileImage(formData: FormData) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  const file = formData.get("file") as File;
+  if (!file) return { success: false, message: "No file provided" };
+
+  try {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const ext = file.name.split(".").pop();
+    const fileName = `user-${userId}-${Date.now()}.${ext}`;
+    const uploadDir = join(process.cwd(), "public", "uploads");
+    await mkdir(uploadDir, { recursive: true });
+    const filePath = join(uploadDir, fileName);
+    await writeFile(filePath, buffer);
+    const imageUrl = `/uploads/${fileName}`;
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { image: imageUrl },
+    });
+
+    revalidatePath("/dashboard/profile");
+    return { success: true, imageUrl };
+  } catch (error) {
+    console.error("Upload error:", error);
+    return { success: false, message: "Upload failed" };
+  }
+}
+
+// --- 4. UPDATE APPEARANCE (Modified) ---
+// Added `shouldClearImage` parameter
+export async function updateAppearance(avatar: any, banner: any, shouldClearImage: boolean = false) {
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
   if (!userId) return { success: false };
 
+  const updateData: any = {
+    avatarConfig: avatar,
+    bannerConfig: banner,
+  };
+
+  // Only clear the uploaded image if explicitly requested (e.g. switching back to avatar)
+  if (shouldClearImage) {
+    updateData.image = null;
+  }
+
   await prisma.user.update({
     where: { id: userId },
-    data: {
-      avatarConfig: avatar,
-      bannerConfig: banner,
-    },
+    data: updateData,
   });
 
   revalidatePath("/dashboard/profile");
   return { success: true };
 }
 
-// --- 3. UPDATE DETAILS (Bio/Location) ---
+// --- 5. UPDATE DETAILS ---
 export async function updateProfileDetails(
   name: string,
   bio: string,
@@ -171,13 +204,12 @@ export async function updateProfileDetails(
   return { success: true };
 }
 
-// --- 4. SAVE CERTIFICATE HASH (Post-Mint) ---
+// --- 6. SAVE CERTIFICATE HASH ---
 export async function saveCertHash(enrollmentId: string, hash: string) {
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
   if (!userId) return { success: false };
 
-  // Update DB
   await prisma.enrollment.update({
     where: { id: enrollmentId },
     data: { certificateHash: hash }
