@@ -17,7 +17,7 @@ export default async function JobsPage() {
     ? await prisma.user.findUnique({
         where: { id: userId },
         include: {
-          applications: { select: { jobId: true } },
+          applications: { select: { jobId: true, status: true } },
           enrollments: {
             include: {
               completedLessons: true, // Needed to count progress
@@ -27,7 +27,13 @@ export default async function JobsPage() {
       })
     : null;
 
-  const userApplications = user?.applications.map((app) => app.jobId) || [];
+  const userApplicationsMap =
+    user?.applications.reduce((acc: any, app: any) => {
+      acc[app.jobId] = app.status;
+      return acc;
+    }, {}) || {};
+
+  // const userApplications = user?.applications.map((app) => app.jobId) || [];
 
   // 3. Fetch All Courses (To check total lessons count & get titles)
   const courses = await prisma.course.findMany({
@@ -96,7 +102,7 @@ export default async function JobsPage() {
   return (
     <JobsClient
       jobs={jobs}
-      userApplications={userApplications}
+      userApplications={userApplicationsMap}
       completedCourses={completedCourses}
     />
   );

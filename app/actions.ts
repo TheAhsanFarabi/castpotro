@@ -304,24 +304,58 @@ export async function applyForJob(jobId: string, submissionLink?: string) {
   }
 }
 
-export async function hireApplicant(applicationId: string, jobId: string) {
-  await prisma.application.update({
-    where: { id: applicationId },
-    data: { status: "HIRED" },
-  });
+export async function rejectApplicant(applicationId: string, jobId: string) {
+  try {
+    // 1. Update status and fetch job details
+    const app = await prisma.application.update({
+      where: { id: applicationId },
+      data: { status: "REJECTED" },
+      include: { job: true },
+    });
 
-  // Refresh the specific job page data
-  revalidatePath(`/admin/jobs/${jobId}`);
+    // 2. Send polite rejection notification
+    await prisma.notification.create({
+      data: {
+        userId: app.userId,
+        title: `Application Update: ${app.job.company}`,
+        message: `Thank you for applying for the ${app.job.role} position. Unfortunately, the team has decided to move forward with other candidates at this time. Keep leveling up your skills!`,
+        type: "SYSTEM", // Use your standard notification type here
+      },
+    });
+
+    revalidatePath(`/admin/jobs/${jobId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Rejection Error:", error);
+    return { success: false };
+  }
 }
 
-export async function rejectApplicant(appId: string, jobId: string) {
-  await prisma.application.update({
-    where: { id: appId },
-    data: { status: "REJECTED" },
-  });
+export async function hireApplicant(applicationId: string, jobId: string) {
+  try {
+    // 1. Update status and fetch job details
+    const app = await prisma.application.update({
+      where: { id: applicationId },
+      data: { status: "HIRED" },
+      include: { job: true },
+    });
 
-  // Refresh the specific job page data
-  revalidatePath(`/admin/jobs/${jobId}`);
+    // 2. Send congratulatory notification
+    await prisma.notification.create({
+      data: {
+        userId: app.userId,
+        title: `Congratulations from ${app.job.company}! 🎉`,
+        message: `Great news! You have been selected for the ${app.job.role} position. The recruiter will be in touch with your next steps.`,
+        type: "ACHIEVEMENT",
+      },
+    });
+
+    revalidatePath(`/admin/jobs/${jobId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Hiring Error:", error);
+    return { success: false };
+  }
 }
 
 // --- EVENT ACTIONS ---
