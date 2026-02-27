@@ -47,6 +47,7 @@ model User {
   questSubmissions   QuestSubmission[]
   notifications      Notification[]
   notes              Note[]
+  achievements       UserAchievement[]
 
   createdCourses Course[] @relation("CourseCreator")
 
@@ -301,4 +302,35 @@ model QuestSubmission {
   // Indexes for faster analytics
   @@index([userId])
   @@index([questId])
+}
+
+// --------------------------------------
+// 6. GAMIFICATION & ACHIEVEMENTS
+// --------------------------------------
+
+model Achievement {
+  id          String @id @default(cuid())
+  name        String // e.g., "Fast Learner"
+  description String // e.g., "Complete 5 lessons"
+  icon        String @default("Trophy") // Lucide icon name or image URL
+  category    String // "LESSONS", "STREAK", "QUESTS", "SOCIAL"
+  requirement Int // The target number to reach (e.g., 5)
+  coinReward  Int    @default(0) // Bonus coins for unlocking this badge
+  xpReward    Int    @default(0) // Bonus XP for unlocking this badge
+
+  unlockedBy UserAchievement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId]) // A user can only earn a specific badge once
 }
