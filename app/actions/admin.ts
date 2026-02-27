@@ -588,3 +588,39 @@ export async function getInstructorCourseEnrollmentData() {
     value: course._count.enrollments,
   }));
 }
+
+// --- REPOST JOB ---
+export async function repostJob(jobId: string) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+
+  if (!userId) throw new Error("Unauthorized");
+
+  try {
+    const oldJob = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!oldJob) throw new Error("Job not found");
+
+    // Create a brand new job copying the exact details of the old one
+    await prisma.job.create({
+      data: {
+        role: oldJob.role,
+        company: oldJob.company,
+        location: oldJob.location,
+        salary: oldJob.salary,
+        type: oldJob.type,
+        requiredCourse: oldJob.requiredCourse,
+        screeningType: oldJob.screeningType,
+        screeningPrompt: oldJob.screeningPrompt,
+        recruiterId: oldJob.recruiterId, // Keeps it assigned to the same recruiter
+        isOpen: true, // Automatically opens the new posting
+        isPromoted: false, // Resets promotion so they don't get free ads
+      },
+    });
+
+    revalidatePath("/admin/jobs");
+    return { success: true };
+  } catch (error) {
+    console.error("Error reposting job:", error);
+    return { success: false };
+  }
+}

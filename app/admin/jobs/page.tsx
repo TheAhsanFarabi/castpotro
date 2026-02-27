@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { repostJob } from "@/app/actions/admin";
 import {
   Briefcase,
   Plus,
@@ -14,6 +15,7 @@ import {
   Edit,
   Eye,
   Archive,
+  Copy,
 } from "lucide-react";
 import { toggleJobStatus, deleteJob } from "@/app/actions/admin";
 import JobSearch from "./JobSearch"; // Import the new component
@@ -252,21 +254,18 @@ export default async function AdminJobsPage(props: {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {/* Re-open Job */}
-                  <form
-                    action={async () => {
-                      "use server";
-                      await toggleJobStatus(job.id, true);
-                    }}
-                  >
+                  {/* REPOST JOB (Duplicate as new) */}
+                  <form action={repostJob.bind(null, job.id)}>
                     <button
-                      className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition"
-                      title="Re-open Job"
+                      type="submit"
+                      className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition"
+                      title="Repost as New Job"
                     >
-                      <Power size={18} />
+                      <Copy size={18} />
                     </button>
                   </form>
 
+                  {/* DELETE JOB */}
                   <form
                     action={async () => {
                       "use server";
@@ -275,7 +274,7 @@ export default async function AdminJobsPage(props: {
                   >
                     <button
                       className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition"
-                      title="Delete"
+                      title="Delete Permanently"
                     >
                       <Trash2 size={18} />
                     </button>
