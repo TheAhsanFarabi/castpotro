@@ -330,6 +330,13 @@ export async function createJob(formData: FormData) {
       ? requiredCourseRaw
       : null;
 
+  // screening question handling
+  const screeningTypeRaw = formData.get("screeningType") as string;
+  const screeningType =
+    screeningTypeRaw && screeningTypeRaw !== "none" ? screeningTypeRaw : null;
+  const screeningPromptRaw = formData.get("screeningPrompt") as string;
+  const screeningPrompt = screeningPromptRaw ? screeningPromptRaw : null;
+
   // Checkbox handling (returns "on" if checked, null otherwise)
   const isPromoted = formData.get("isPromoted") === "on";
 
@@ -341,6 +348,8 @@ export async function createJob(formData: FormData) {
       salary,
       type,
       requiredCourse,
+      screeningType,
+      screeningPrompt,
       isPromoted,
       isOpen: true, // Default to open
       recruiterId: user?.role === "RECRUITER" ? userId : null, // Link recruiter if applicable
@@ -364,6 +373,13 @@ export async function updateJob(jobId: string, formData: FormData) {
       ? requiredCourseRaw
       : null;
 
+  // extract screening question data
+  const screeningTypeRaw = formData.get("screeningType") as string;
+  const screeningType =
+    screeningTypeRaw && screeningTypeRaw !== "none" ? screeningTypeRaw : null;
+  const screeningPromptRaw = formData.get("screeningPrompt") as string;
+  const screeningPrompt = screeningPromptRaw ? screeningPromptRaw : null;
+
   const isPromoted = formData.get("isPromoted") === "on";
 
   await prisma.job.update({
@@ -375,6 +391,8 @@ export async function updateJob(jobId: string, formData: FormData) {
       salary,
       type,
       requiredCourse,
+      screeningType,
+      screeningPrompt,
       isPromoted,
     },
   });

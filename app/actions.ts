@@ -14,12 +14,12 @@ export async function registerAction(prevState: any, formData: FormData) {
   const password = formData.get("password") as string;
   const dobString = formData.get("dob") as string; // Get value like "2000-01-01"
 
-  
   // NEW: Get the new fields
   const country = formData.get("country") as string;
   const university = formData.get("university") as string;
 
-  if (!email || !password || !dobString || !country || !university) { // Added validation
+  if (!email || !password || !dobString || !country || !university) {
+    // Added validation
     return { success: false, message: "Please fill in all required fields" };
   }
 
@@ -59,35 +59,7 @@ export async function registerAction(prevState: any, formData: FormData) {
   }
 }
 
-// UPDATE THIS FUNCTION
-// export async function loginAction(prevState: any, formData: FormData) {
-//   const email = formData.get("email") as string;
-//   const password = formData.get("password") as string;
-
-//   try {
-//     const user = await prisma.user.findUnique({
-//       where: { email },
-//     });
-
-//     if (!user || !(await bcrypt.compare(password, user.password))) {
-//       return { success: false, message: "Invalid credentials" };
-//     }
-
-//     const cookieStore = await cookies();
-//     cookieStore.set("userId", user.id, { httpOnly: true, path: "/" });
-
-//     // --- ROLE BASED REDIRECT ---
-//     if (user.role === "USER") {
-//       return { success: true, redirectUrl: "/dashboard" };
-//     } else {
-//       // Admins, Instructors, etc. go to Admin Panel
-//       return { success: true, redirectUrl: "/admin" };
-//     }
-//   } catch (error) {
-//     console.error("Login error:", error);
-//     return { success: false, message: "Something went wrong." };
-//   }
-// }
+// UPDATE THIS FUNCTION TO RETURN A UNIFIED RESPONSE STRUCTURE WITH 'success', 'message', AND 'redirectUrl' FIELDS
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -302,7 +274,7 @@ export async function completeLesson(courseId: string, lessonId: string) {
 
 // --- JOB ACTIONS ---
 
-export async function applyForJob(jobId: string) {
+export async function applyForJob(jobId: string, submissionLink?: string) {
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
 
@@ -320,6 +292,7 @@ export async function applyForJob(jobId: string) {
       data: {
         userId,
         jobId,
+        submissionLink: submissionLink || null,
       },
     });
 
@@ -332,25 +305,6 @@ export async function applyForJob(jobId: string) {
 }
 
 export async function hireApplicant(applicationId: string, jobId: string) {
-  // try {
-  //   // Transaction: Mark application as HIRED, Close the Job
-  //   await prisma.$transaction([
-  //     prisma.application.update({
-  //       where: { id: applicationId },
-  //       data: { status: "HIRED" },
-  //     }),
-  //     prisma.job.update({
-  //       where: { id: jobId },
-  //       data: { isOpen: false }, // This removes it from the public board
-  //     }),
-  //   ]);
-
-  //   revalidatePath("/admin/jobs");
-  //   return { success: true };
-  // } catch (error) {
-  //   console.error("Hiring error:", error);
-  //   return { success: false };
-  // }
   await prisma.application.update({
     where: { id: applicationId },
     data: { status: "HIRED" },
@@ -360,20 +314,6 @@ export async function hireApplicant(applicationId: string, jobId: string) {
   revalidatePath(`/admin/jobs/${jobId}`);
 }
 
-// export async function rejectApplicant(applicationId: string) {
-//   try {
-//     await prisma.application.update({
-//       where: { id: applicationId },
-//       data: { status: "REJECTED" },
-//     });
-
-//     revalidatePath("/admin/jobs");
-//     return { success: true };
-//   } catch (error) {
-//     console.error("Rejection error:", error);
-//     return { success: false };
-//   }
-// }
 export async function rejectApplicant(appId: string, jobId: string) {
   await prisma.application.update({
     where: { id: appId },

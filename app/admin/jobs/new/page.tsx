@@ -10,6 +10,7 @@ import {
   BookOpen,
   Star,
   Save,
+  Video,
 } from "lucide-react";
 
 export default async function NewJobPage() {
@@ -138,6 +139,47 @@ export default async function NewJobPage() {
               <option value="Internship">Internship</option>
               <option value="Contract">Contract</option>
             </select>
+          </div>
+        </div>
+
+        {/* pre application screening section */}
+        <div className="space-y-6">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2 text-lg border-b border-slate-100 pb-2">
+            <Video size={20} className="text-purple-500" /> Pre-Application
+            Screening
+          </h3>
+          <p className="text-sm text-slate-500 font-medium">
+            Ask candidates to submit a short video, text response, or portfolio
+            link.
+          </p>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                Submission Type
+              </label>
+              <select
+                name="screeningType"
+                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:outline-none focus:border-purple-500 transition-colors"
+              >
+                <option value="none">No Screening (Instant Apply)</option>
+                <option value="VIDEO_LINK">Video Link (YouTube/Drive)</option>
+                <option value="TEXT">Text Response</option>
+                <option value="PORTFOLIO_LINK">Portfolio / Project Link</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                Prompt / Instructions
+              </label>
+              <textarea
+                name="screeningPrompt"
+                rows={3}
+                placeholder="e.g., Record a 1-minute video explaining how you would handle an angry customer and paste the link."
+                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+              ></textarea>
+            </div>
           </div>
         </div>
 
