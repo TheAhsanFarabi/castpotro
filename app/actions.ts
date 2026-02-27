@@ -539,3 +539,108 @@ export async function saveUserPlan(courseIds: string[]) {
     return { success: false };
   }
 }
+
+// --- RECRUITER AI & INTERVIEW ACTIONS ---
+
+export async function generateApplicantScore(applicationId: string) {
+  try {
+    // 1. Fetch all data needed for Gemini to make a decision
+    const app = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        job: true,
+        user: {
+          include: {
+            enrollments: { include: { course: true, completedLessons: true } },
+          },
+        },
+      },
+    });
+
+    if (!app) return { success: false };
+
+    // 2. Format the student's Castpotro DNA
+    const courses = app.user.enrollments
+      .map(
+        (e) => `${e.course.title} (${e.completedLessons.length} lessons done)`,
+      )
+      .join(", ");
+    const candidateProfile = `
+      Name: ${app.user.name}
+      Total Impact XP: ${app.user.xp}
+      Courses Taken: ${courses || "None yet"}
+      Screening Submission: ${app.submissionLink || "None provided"}
+    `;
+
+    const jobProfile = `
+      Role: ${app.job.role} at ${app.job.company}
+      Requirements: ${app.job.screeningPrompt || "Standard application"}
+    `;
+
+    // 3. Ask Gemini for a Match Score (0 to 100)
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const prompt = `
+      You are an expert technical recruiter. Evaluate this candidate against the job.
+      Return ONLY a single number from 0 to 100 representing the match percentage. Do not include a % symbol or any other text.
+      
+      Job Details: ${jobProfile}
+      Candidate DNA: ${candidateProfile}
+    `;
+
+    const result = await model.generateContent(prompt);
+    const scoreText = result.response.text().trim();
+    const score = parseFloat(scoreText);
+
+    if (isNaN(score)) throw new Error("Gemini returned invalid score format");
+
+    // 4. Save the score to the database
+    await prisma.application.update({
+      where: { id: applicationId },
+      data: { aiMatchScore: score },
+    });
+
+    revalidatePath(`/admin/jobs/${app.jobId}`);
+    return { success: true, score };
+  } catch (error) {
+    console.error("AI Scoring Error:", error);
+    return { success: false };
+  }
+}
+
+export async function sendInterviewInvite(
+  applicationId: string,
+  meetingLink: string,
+  date: string,
+) {
+  try {
+    const app = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: { job: true },
+    });
+
+    if (!app) return { success: false };
+
+    // 1. Update Application Status
+    await prisma.application.update({
+      where: { id: applicationId },
+      data: { status: "INTERVIEW_SCHEDULED" },
+    });
+
+    // 2. Send Notification to Student
+    await prisma.notification.create({
+      data: {
+        userId: app.userId,
+        title: `Interview Invite: ${app.job.company}`,
+        message: `You have been invited to an interview for the ${app.job.role} position on ${date}.`,
+        type: "EVENT",
+        link: meetingLink,
+      },
+    });
+
+    revalidatePath(`/admin/jobs/${app.jobId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Interview Invite Error:", error);
+    return { success: false };
+  }
+}
