@@ -70,6 +70,28 @@ export async function submitQuest(formData: FormData) {
     }
 
     // --- DATABASE SAVE & XP UPDATE ---
+    // await prisma.$transaction(async (tx) => {
+    //   // 1. Create Submission
+    //   await tx.questSubmission.create({
+    //     data: {
+    //       userId,
+    //       questId,
+    //       proofText,
+    //       proofImage: proofImageUrl,
+    //       status,
+    //       feedback,
+    //       aiConfidence,
+    //     },
+    //   });
+
+    //   // 2. FIX 2: Award XP immediately if Auto-Approved
+    //   if (status === "APPROVED") {
+    //     await tx.user.update({
+    //       where: { id: userId },
+    //       data: { xp: { increment: quest.xp } },
+    //     });
+    //   }
+    // });
     await prisma.$transaction(async (tx) => {
       // 1. Create Submission
       await tx.questSubmission.create({
@@ -84,13 +106,27 @@ export async function submitQuest(formData: FormData) {
         },
       });
 
-      // 2. FIX 2: Award XP immediately if Auto-Approved
+      // 2. Award XP immediately if Auto-Approved
       if (status === "APPROVED") {
         await tx.user.update({
           where: { id: userId },
           data: { xp: { increment: quest.xp } },
         });
       }
+
+      // 3. NEW: Create a Notification for the Quest Submission
+      await tx.notification.create({
+        data: {
+          userId,
+          title: `${quest.title}::Quest Submitted`,
+          message:
+            status === "APPROVED"
+              ? `Awesome! You completed the quest "${quest.title}" and earned ${quest.xp} XP.`
+              : `You successfully submitted the quest "${quest.title}". It is currently pending review.`,
+          type: "QUEST", // Use a distinct type for quests
+          link: "/dashboard/quests",
+        },
+      });
     });
 
     revalidatePath("/dashboard/quests");

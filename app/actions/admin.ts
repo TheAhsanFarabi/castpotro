@@ -211,6 +211,38 @@ export async function deleteQuest(id: string) {
 
 // --- SUBMISSION VERIFICATION ---
 
+// export async function reviewSubmission(
+//   submissionId: string,
+//   status: "APPROVED" | "REJECTED",
+//   feedback: string,
+// ) {
+//   const submission = await prisma.questSubmission.findUnique({
+//     where: { id: submissionId },
+//     include: { quest: true },
+//   });
+
+//   if (!submission) return;
+
+//   await prisma.$transaction(async (tx) => {
+//     // 1. Update Submission Status
+//     await tx.questSubmission.update({
+//       where: { id: submissionId },
+//       data: { status, feedback },
+//     });
+
+//     // 2. If Approved, Award XP to User
+//     if (status === "APPROVED" && submission.status !== "APPROVED") {
+//       await tx.user.update({
+//         where: { id: submission.userId },
+//         data: { xp: { increment: submission.quest.xp } },
+//       });
+//     }
+//   });
+
+//   revalidatePath(`/admin/quests/${submission.questId}`);
+// }
+// --- SUBMISSION VERIFICATION ---
+
 export async function reviewSubmission(
   submissionId: string,
   status: "APPROVED" | "REJECTED",
@@ -230,11 +262,29 @@ export async function reviewSubmission(
       data: { status, feedback },
     });
 
-    // 2. If Approved, Award XP to User
+    // 2. If Approved, Award XP to User (Only if it wasn't already approved)
     if (status === "APPROVED" && submission.status !== "APPROVED") {
       await tx.user.update({
         where: { id: submission.userId },
         data: { xp: { increment: submission.quest.xp } },
+      });
+    }
+
+    // 3. NEW: Notify the user of the review result
+    // We only send this if the status is actually changing to avoid spamming
+    // if an admin accidentally clicks the same button twice.
+    if (submission.status !== status) {
+      await tx.notification.create({
+        data: {
+          userId: submission.userId,
+          title: `${submission.quest.title}::${status === "APPROVED" ? "Quest Approved! 🏆" : "Quest Review Update"}`,
+          message:
+            status === "APPROVED"
+              ? `Great job! Your submission for "${submission.quest.title}" was approved. You earned ${submission.quest.xp} XP.\n\nFeedback: ${feedback}`
+              : `Your submission for "${submission.quest.title}" requires changes.`,
+          type: "QUEST",
+          // Intentionally omitting 'link' as requested previously
+        },
       });
     }
   });

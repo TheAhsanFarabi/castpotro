@@ -273,7 +273,6 @@ export async function completeLesson(courseId: string, lessonId: string) {
 }
 
 // --- JOB ACTIONS ---
-
 export async function applyForJob(jobId: string, submissionLink?: string) {
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
@@ -281,19 +280,30 @@ export async function applyForJob(jobId: string, submissionLink?: string) {
   if (!userId) return { success: false, message: "Not authenticated" };
 
   try {
-    // Check if job exists and is open
     const job = await prisma.job.findUnique({ where: { id: jobId } });
     if (!job || !job.isOpen) {
       return { success: false, message: "Job is no longer available" };
     }
 
-    // Create Application
-    await prisma.application.create({
-      data: {
-        userId,
-        jobId,
-        submissionLink: submissionLink || null,
-      },
+    await prisma.$transaction(async (tx) => {
+      // 1. Create Application
+      await tx.application.create({
+        data: {
+          userId,
+          jobId,
+          submissionLink: submissionLink || null,
+        },
+      });
+
+      // 2. NEW: Send Application Notification
+      await tx.notification.create({
+        data: {
+          userId,
+          title: `${job.role}::Application Submitted`,
+          message: `You have successfully applied for the ${job.role} position at ${job.company}. We will notify you when there's an update.`,
+          type: "JOB",
+        },
+      });
     });
 
     revalidatePath("/dashboard/jobs");
@@ -304,60 +314,55 @@ export async function applyForJob(jobId: string, submissionLink?: string) {
   }
 }
 
+// ADMIN ACTIONS: Rejecting or Hiring an applicant. These actions will update the application status and send a notification to the user about the outcome. The recruiter can also input feedback that will be included in the notification message. For simplicity, we will just have a standard message for rejection and a congratulatory message for hiring. The recruiter can customize these messages in the future if needed.
 export async function rejectApplicant(applicationId: string, jobId: string) {
   try {
-    // 1. Update status and fetch job details
     const app = await prisma.application.update({
       where: { id: applicationId },
       data: { status: "REJECTED" },
       include: { job: true },
     });
 
-    // 2. Send polite rejection notification
     await prisma.notification.create({
       data: {
         userId: app.userId,
-        title: `Application Update: ${app.job.company}`,
-        message: `Thank you for applying for the ${app.job.role} position. Unfortunately, the team has decided to move forward with other candidates at this time. Keep leveling up your skills!`,
-        type: "SYSTEM", // Use your standard notification type here
+        title: `${app.job.role}::Application Update`,
+        message: `Thank you for applying for the ${app.job.role} position.\n\nUnfortunately, the team has decided to move forward with other candidates at this time. Keep leveling up your skills!`,
+        type: "JOB",
       },
     });
 
     revalidatePath(`/admin/jobs/${jobId}`);
     return { success: true };
   } catch (error) {
-    console.error("Rejection Error:", error);
     return { success: false };
   }
 }
 
+// The hireApplicant function will update the application status to "HIRED" and send a notification to the user congratulating them on being selected for the position. The message will also mention that the recruiter will be in touch with the next steps. This keeps the user informed and excited about their new opportunity.
 export async function hireApplicant(applicationId: string, jobId: string) {
   try {
-    // 1. Update status and fetch job details
     const app = await prisma.application.update({
       where: { id: applicationId },
       data: { status: "HIRED" },
       include: { job: true },
     });
 
-    // 2. Send congratulatory notification
     await prisma.notification.create({
       data: {
         userId: app.userId,
-        title: `Congratulations from ${app.job.company}! 🎉`,
-        message: `Great news! You have been selected for the ${app.job.role} position. The recruiter will be in touch with your next steps.`,
-        type: "ACHIEVEMENT",
+        title: `${app.job.role}::Congratulations! 🎉`,
+        message: `Great news! You have been selected for the ${app.job.role} position.\n\nThe recruiter will be in touch with your next steps.`,
+        type: "JOB",
       },
     });
 
     revalidatePath(`/admin/jobs/${jobId}`);
     return { success: true };
   } catch (error) {
-    console.error("Hiring Error:", error);
     return { success: false };
   }
 }
-
 // --- EVENT ACTIONS ---
 
 export async function registerForEvent(eventId: string) {
@@ -367,7 +372,6 @@ export async function registerForEvent(eventId: string) {
   if (!userId) return { success: false, message: "Not authenticated" };
 
   try {
-    // Use a transaction to ensure the check and registration happen together
     await prisma.$transaction(async (tx) => {
       // 1. Get the event's capacity
       const event = await tx.event.findUnique({
@@ -389,9 +393,16 @@ export async function registerForEvent(eventId: string) {
 
       // 4. If space is available, create the registration
       await tx.eventRegistration.create({
+        data: { userId, eventId },
+      });
+
+      // 5. NEW: Send Registration Notification
+      await tx.notification.create({
         data: {
           userId,
-          eventId,
+          title: `${event.title}::Registration Confirmed`,
+          message: `You have successfully registered for "${event.title}". We will notify you when the meeting link is available.`,
+          type: "EVENT",
         },
       });
     });
@@ -419,22 +430,48 @@ export async function registerForEvent(eventId: string) {
 
 // ADMIN ONLY ACTION
 export async function updateEventLink(eventId: string, link: string) {
+  // try {
+  //   // 1. Update Event
+  //   const event = await prisma.event.update({
+  //     where: { id: eventId },
+  //     data: { meetingLink: link },
+  //     include: { registrations: true },
+  //   });
+
+  //   // 2. Send Notification to ALL Registrants
+  //   // We use createMany to be efficient
+  //   if (event.registrations.length > 0) {
+  //     await prisma.notification.createMany({
+  //       data: event.registrations.map((reg) => ({
+  //         userId: reg.userId,
+  //         title: "Meeting Link Added",
+  //         message: `The link for "${event.title}" has been updated. Click to join.`,
+  //         type: "EVENT",
+  //         link: link,
+  //       })),
+  //     });
+  //   }
+
+  //   revalidatePath("/admin/events");
+  //   return { success: true };
+  // } catch (error) {
+  //   console.error(error);
+  //   return { success: false };
+  // }
   try {
-    // 1. Update Event
     const event = await prisma.event.update({
       where: { id: eventId },
       data: { meetingLink: link },
       include: { registrations: true },
     });
 
-    // 2. Send Notification to ALL Registrants
-    // We use createMany to be efficient
     if (event.registrations.length > 0) {
       await prisma.notification.createMany({
         data: event.registrations.map((reg) => ({
           userId: reg.userId,
-          title: "Meeting Link Added",
-          message: `The link for "${event.title}" has been updated. Click to join.`,
+          // UPDATE THIS LINE to include the Event title:
+          title: `${event.title}::Meeting Link Added`,
+          message: `The link for "${event.title}" has been updated. Click the button below to join.`,
           type: "EVENT",
           link: link,
         })),
@@ -641,6 +678,7 @@ export async function generateApplicantScore(applicationId: string) {
   }
 }
 
+// interview invite action, we will send a notification to the user with the interview details and a link to the meeting. We will also update the application status to "INTERVIEW_SCHEDULED". The recruiter can input a date string like "Oct 24th at 3:00 PM" and we will parse it to extract the date and time for the notification message.
 export async function sendInterviewInvite(
   applicationId: string,
   meetingLink: string,
@@ -651,30 +689,46 @@ export async function sendInterviewInvite(
       where: { id: applicationId },
       include: { job: true },
     });
-
     if (!app) return { success: false };
 
-    // 1. Update Application Status
     await prisma.application.update({
       where: { id: applicationId },
       data: { status: "INTERVIEW_SCHEDULED" },
     });
 
-    // 2. Send Notification to Student
+    const datePart = date.includes(" at ") ? date.split(" at ")[0] : date;
+    const timePart = date.includes(" at ") ? date.split(" at ")[1] : "TBD";
+
     await prisma.notification.create({
       data: {
         userId: app.userId,
-        title: `Interview Invite: ${app.job.company}`,
-        message: `You have been invited to an interview for the ${app.job.role} position on ${date}.`,
-        type: "EVENT",
-        link: meetingLink,
+        title: `${app.job.role}::Interview Invite`,
+        message: `You have been invited to an interview for the position of ${app.job.role}.\n\nDate: ${datePart}\nTime: ${timePart}\n\nPlease click the button below to join the meeting at the scheduled time.`,
+        type: "JOB",
+        link: meetingLink, // This automatically renders the "Open Link" button on the frontend
       },
     });
 
     revalidatePath(`/admin/jobs/${app.jobId}`);
     return { success: true };
   } catch (error) {
-    console.error("Interview Invite Error:", error);
+    return { success: false };
+  }
+}
+
+// --- NOTIFICATION ACTIONS ---
+
+export async function markNotificationAsRead(notificationId: string) {
+  try {
+    await prisma.notification.update({
+      where: { id: notificationId },
+      data: { isRead: true },
+    });
+    // We don't need to revalidate path here if we handle state on the client,
+    // but it's good practice to ensure the server knows.
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to mark as read:", error);
     return { success: false };
   }
 }
