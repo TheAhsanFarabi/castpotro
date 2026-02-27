@@ -6,10 +6,12 @@ import { getUserGrowthData } from "@/app/actions/admin";
 
 export default function UserGrowthChart({
   initialData,
-  courses,
+  courses = [],
+  type = "learner", // Add a type prop to determine the display mode
 }: {
   initialData: { name: string; value: number }[];
-  courses: { id: string; title: string }[];
+  courses?: { id: string; title: string }[];
+  type?: "learner" | "applicant";
 }) {
   const [period, setPeriod] = useState<"monthly" | "daily" | "yearly">(
     "monthly",
@@ -47,42 +49,47 @@ export default function UserGrowthChart({
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-4">
         <div>
           <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2">
-            Learner Growth
+            {/* Dynamic Title */}
+            {type === "applicant" ? "Applicant Growth" : "Learner Growth"}
             {isPending && (
               <span className="text-xs font-normal text-indigo-500 animate-pulse">
                 Updating...
               </span>
             )}
           </h3>
-          <p className="text-slate-400 text-sm">New enrollments</p>
+          <p className="text-slate-400 text-sm">
+            {/* Dynamic Subtitle */}
+            {type === "applicant" ? "New applicants" : "New enrollments"}
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Filter
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <select
-              value={selectedCourse}
-              onChange={handleCourseChange}
-              className="pl-9 pr-4 py-2 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none border-none cursor-pointer appearance-none hover:bg-slate-200 transition-colors"
-            >
-              <option value="all">All Courses</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {" "}
-                  {/* ADDED UNIQUE KEY HERE */}
-                  {c.title}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Hide the course filter if the user is viewing applicant data */}
+          {type !== "applicant" && (
+            <div className="relative">
+              <Filter
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <select
+                value={selectedCourse}
+                onChange={handleCourseChange}
+                className="pl-9 pr-4 py-2 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none border-none cursor-pointer appearance-none hover:bg-slate-200 transition-colors"
+              >
+                <option value="all">All Courses</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex bg-slate-100 p-1 rounded-xl">
             {(["daily", "monthly", "yearly"] as const).map((p) => (
               <button
-                key={p} // ADDED UNIQUE KEY HERE
+                key={p}
                 onClick={() => handlePeriodToggle(p)}
                 className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${period === p ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
               >
@@ -111,7 +118,7 @@ export default function UserGrowthChart({
               className="flex flex-col items-center justify-end h-full flex-1 group relative cursor-default"
             >
               <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 bg-slate-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl z-20 pointer-events-none whitespace-nowrap">
-                {item.value} Users
+                {item.value} {type === "applicant" ? "Applicants" : "Users"}
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
               </div>
               <div

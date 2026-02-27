@@ -459,24 +459,34 @@ export async function getUserGrowthData(
     select: { role: true },
   });
 
-  // Build the where clause dynamically
-  const whereClause: any = {};
+  // 1. Fetch Records based on Role
+  let records: { createdAt: Date }[] = [];
 
-  if (courseId && courseId !== "all") {
-    whereClause.courseId = courseId;
-  } else if (currentUser?.role !== "SUPER_ADMIN") {
-    // If no specific course is selected, instructors see all their courses
-    whereClause.course = { creatorId: userId };
+  if (currentUser?.role === "RECRUITER") {
+    // Recruiters fetch Applications
+    records = await prisma.application.findMany({
+      where: { job: { recruiterId: userId } },
+      select: { createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
+  } else {
+    // Admins and Instructors fetch Enrollments
+    const whereClause: any = {};
+    if (courseId && courseId !== "all") {
+      whereClause.courseId = courseId;
+    } else if (currentUser?.role !== "SUPER_ADMIN") {
+      whereClause.course = { creatorId: userId };
+    }
+    records = await prisma.enrollment.findMany({
+      where: whereClause,
+      select: { createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
   }
-  const enrollments = await prisma.enrollment.findMany({
-    where: whereClause,
-    select: { createdAt: true },
-    orderBy: { createdAt: "asc" },
-  });
 
   const data = new Map<string, number>();
 
-  // 1. Initialize Keys (X-Axis labels)
+  // 2. Initialize Keys (X-Axis labels)
   const now = new Date();
   if (period === "monthly") {
     for (let i = 5; i >= 0; i--) {
@@ -504,8 +514,8 @@ export async function getUserGrowthData(
     }
   }
 
-  // 2. Count Enrollments
-  enrollments.forEach((record) => {
+  // 3. Count Records (Enrollments or Applications)
+  records.forEach((record) => {
     let key = "";
     if (period === "monthly") {
       const threshold = new Date();

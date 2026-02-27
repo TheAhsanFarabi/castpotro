@@ -39,20 +39,6 @@ export default async function AdminJobsPage(props: {
   const isRecruiter = currentUser.role === "RECRUITER"; // Example role check for conditional UI
 
   // 1. Fetch filtered jobs
-  // const allJobs = await prisma.job.findMany({
-  //   where: {
-  //     OR: [
-  //       { role: { contains: query } }, // Remove mode: 'insensitive' for MySQL
-  //       { company: { contains: query } },
-  //     ],
-  //   },
-  //   orderBy: { createdAt: "desc" },
-  //   include: {
-  //     _count: {
-  //       select: { applications: true },
-  //     },
-  //   },
-  // });
   const allJobs = await prisma.job.findMany({
     where: {
       // Filter by recruiterId if the user is a Recruiter

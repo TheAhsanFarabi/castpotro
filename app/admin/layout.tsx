@@ -82,7 +82,7 @@ export default async function AdminLayout({
       label: "Settings",
       href: "/admin/settings",
       icon: Settings,
-      roles: ["SUPER_ADMIN", "INSTRUCTOR"],
+      roles: ["SUPER_ADMIN", "INSTRUCTOR", "RECRUITER"],
     },
   ];
 
