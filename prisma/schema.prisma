@@ -19,36 +19,39 @@ enum Role {
   INSTRUCTOR
   COMMUNITY_MANAGER
   PARTNER_MANAGER
+  RECRUITER
 }
 
 model User {
-  id          String       @id @default(cuid())
-  email       String       @unique
-  name        String?
-  dob         DateTime?
-  password    String
-  role        Role         @default(USER)
-  coins       Int          @default(100) // Starting balance
-  xp          Int          @default(0)
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  dob          DateTime?
+  password     String
+  role         Role      @default(USER)
+  coins        Int       @default(100) // Starting balance
+  xp           Int       @default(0)
   bio          String?   @db.Text
   location     String?
-  country     String?      
-  university  String?      
-  avatarConfig Json?     
+  country      String?
+  university   String?
+  avatarConfig Json?
   bannerConfig Json?
-  image       String?
-  
+  image        String?
+  createdJobs  Job[]     @relation("JobRecruiter")
+
   // Relations
-  enrollments Enrollment[]
-  applications Application[]
+  enrollments        Enrollment[]
+  applications       Application[]
   eventRegistrations EventRegistration[]
-  questSubmissions QuestSubmission[]
-  notifications      Notification[]     
+  questSubmissions   QuestSubmission[]
+  notifications      Notification[]
   notes              Note[]
+
   createdCourses Course[] @relation("CourseCreator")
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // --------------------------------------
@@ -56,60 +59,60 @@ model User {
 // --------------------------------------
 
 model Course {
-  id          String       @id @default(cuid())
+  id          String @id @default(cuid())
   title       String
   description String
-  icon        String       @default("Hexagon") // Lucide icon name
+  icon        String @default("Hexagon") // Lucide icon name
 
   // to link the instructor (User with INSTRUCTOR role)
-  creatorId   String?
-  creator User? @relation("CourseCreator", fields: [creatorId], references: [id]) 
+  creatorId String?
+  creator   User?   @relation("CourseCreator", fields: [creatorId], references: [id])
 
   units       Unit[]
   enrollments Enrollment[]
-  
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Unit {
   id          String   @id @default(cuid())
   title       String
   description String
-  order       Int      // 1, 2, 3... used for sequencing
+  order       Int // 1, 2, 3... used for sequencing
   courseId    String
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons     Lesson[]
 }
 
 model Lesson {
-  id               String            @id @default(cuid())
-  title            String
-  videoUrl         String?
+  id       String  @id @default(cuid())
+  title    String
+  videoUrl String?
   // CHANGE: From String to Json/Text to store BlockNote data
   // If using MySQL, @db.LongText is safer for large content. 
   // If Postgres, use Json. We'll use Text for compatibility.
-  theory           String?           @db.LongText 
-  
-  unitId           String
-  unit             Unit              @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  questions        Quiz[]
-  completedBy      CompletedLesson[] 
-  
+  theory   String? @db.LongText
+
+  unitId      String
+  unit        Unit              @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  questions   Quiz[]
+  completedBy CompletedLesson[]
+
   // Relation to Student Notes
-  notes            Note[] 
+  notes Note[]
 }
 
 // NEW MODEL: Student Notes
 model Note {
-  id        String   @id @default(cuid())
-  content   String   @db.LongText // Stores the JSON blocks of the note
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  lessonId  String
-  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  content String @db.LongText // Stores the JSON blocks of the note
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -118,12 +121,12 @@ model Note {
 }
 
 model Quiz {
-  id        String   @id @default(cuid())
-  question  String
-  options   Json     // Stored as ["Option A", "Option B", "Option C"]
-  correct   Int      // Index of the correct option (0, 1, 2...)
-  lessonId  String
-  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  question String
+  options  Json // Stored as ["Option A", "Option B", "Option C"]
+  correct  Int // Index of the correct option (0, 1, 2...)
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 }
 
 // --------------------------------------
@@ -131,18 +134,18 @@ model Quiz {
 // --------------------------------------
 
 model Enrollment {
-  id               String            @id @default(cuid())
-  userId           String
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId         String
-  course           Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
   // Tracks exactly which lessons are finished in this course
-  completedLessons CompletedLesson[] 
+  completedLessons CompletedLesson[]
   certificateHash  String?
   progress         Int               @default(0) // Percentage (optional helper)
   createdAt        DateTime          @default(now())
-  
+
   @@unique([userId, courseId]) // User can only enroll in a course once
 }
 
@@ -167,17 +170,17 @@ model Event {
   description String
   date        DateTime
   location    String
-  type        String   
+  type        String
   capacity    Int      @default(50)
-  
+
   // NEW FIELD
-  meetingLink String?  @db.Text 
-  status      String   @default("UPCOMING") // Options: UPCOMING, COMPLETED, CANCELLED
+  meetingLink String? @db.Text
+  status      String  @default("UPCOMING") // Options: UPCOMING, COMPLETED, CANCELLED
 
   // RELATIONS
   registrations EventRegistration[]
-  
-  createdAt   DateTime @default(now())
+
+  createdAt DateTime @default(now())
 }
 
 // NEW MODEL: Event Registration
@@ -200,7 +203,7 @@ model Notification {
   title     String
   message   String
   type      String   @default("INFO") // INFO, EVENT, ALERT
-  link      String?  // Action link (e.g., zoom link)
+  link      String? // Action link (e.g., zoom link)
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
@@ -210,18 +213,20 @@ model Notification {
 // --------------------------------------
 
 model Job {
-  id             String        @id @default(cuid())
+  id             String   @id @default(cuid())
   role           String
   company        String
   location       String
   salary         String
-  type           String        // "Full-Time", "Internship"
-  requiredCourse String?       // ID of the course required to apply
-  isPromoted     Boolean       @default(false)
-  isOpen         Boolean       @default(true) // New field: true = showing, false = hired/closed
-  createdAt      DateTime      @default(now())
-  
-  applications   Application[] // Add this relation
+  type           String // "Full-Time", "Internship"
+  requiredCourse String? // ID of the course required to apply
+  isPromoted     Boolean  @default(false)
+  isOpen         Boolean  @default(true) // New field: true = showing, false = hired/closed
+  createdAt      DateTime @default(now())
+  recruiterId    String? // ID of the recruiter (User with RECRUITER role)
+  recruiter      User?    @relation("JobRecruiter", fields: [recruiterId], references: [id])
+
+  applications Application[] // Add this relation
 }
 
 model Application {
@@ -237,57 +242,57 @@ model Application {
 }
 
 model Ad {
-  id          String   @id @default(cuid())
-  title       String
-  content     String
-  ctaLink     String
-  isActive    Boolean  @default(true)
-  placement   String   // "sidebar_right", "banner_top"
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  ctaLink   String
+  isActive  Boolean  @default(true)
+  placement String // "sidebar_right", "banner_top"
+  createdAt DateTime @default(now())
 }
 
 // --- QUESTS & IMPACT SYSTEM ---
 
 model Quest {
-  id               String   @id @default(cuid())
-  title            String
-  description      String
-  xp               Int
-  sdgId            Int      // 1-17 corresponding to UN SDGs
-  
+  id          String @id @default(cuid())
+  title       String
+  description String
+  xp          Int
+  sdgId       Int // 1-17 corresponding to UN SDGs
+
   // Configuration
-  frequency        String   @default("ONCE") // "DAILY", "WEEKLY", "ONCE", "INFINITE"
-  verificationType String   @default("TEXT") // "AI_IMAGE", "TEXT", "LINK", "QR"
-  
+  frequency        String @default("ONCE") // "DAILY", "WEEKLY", "ONCE", "INFINITE"
+  verificationType String @default("TEXT") // "AI_IMAGE", "TEXT", "LINK", "QR"
+
   // AI Configuration
-  aiPrompt         String?  @db.Text // e.g., "Check if the image contains a planted tree"
-  
-  submissions      QuestSubmission[]
-  
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  aiPrompt String? @db.Text // e.g., "Check if the image contains a planted tree"
+
+  submissions QuestSubmission[]
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model QuestSubmission {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  questId      String
-  quest        Quest    @relation(fields: [questId], references: [id], onDelete: Cascade)
-  
-  // Evidence
-  proofText    String?  @db.Text // User's reflection or link
-  proofImage   String?  // URL to uploaded image
-  
-  // Validation Status
-  status       String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
-  
-  // Feedback
-  feedback     String?  // Reason for rejection (from AI or Admin)
-  aiConfidence Float?   // 0.0 to 1.0 (if AI verified)
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questId String
+  quest   Quest  @relation(fields: [questId], references: [id], onDelete: Cascade)
 
-  createdAt    DateTime @default(now())
+  // Evidence
+  proofText  String? @db.Text // User's reflection or link
+  proofImage String? // URL to uploaded image
+
+  // Validation Status
+  status String @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+
+  // Feedback
+  feedback     String? // Reason for rejection (from AI or Admin)
+  aiConfidence Float? // 0.0 to 1.0 (if AI verified)
+
+  createdAt DateTime @default(now())
 
   // Indexes for faster analytics
   @@index([userId])
