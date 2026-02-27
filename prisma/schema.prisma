@@ -213,30 +213,34 @@ model Notification {
 // --------------------------------------
 
 model Job {
-  id             String   @id @default(cuid())
-  role           String
-  company        String
-  location       String
-  salary         String
-  type           String // "Full-Time", "Internship"
-  requiredCourse String? // ID of the course required to apply
-  isPromoted     Boolean  @default(false)
-  isOpen         Boolean  @default(true) // New field: true = showing, false = hired/closed
-  createdAt      DateTime @default(now())
-  recruiterId    String? // ID of the recruiter (User with RECRUITER role)
-  recruiter      User?    @relation("JobRecruiter", fields: [recruiterId], references: [id])
+  id              String   @id @default(cuid())
+  role            String
+  company         String
+  location        String
+  salary          String
+  type            String // "Full-Time", "Internship"
+  requiredCourse  String? // ID of the course required to apply
+  isPromoted      Boolean  @default(false)
+  isOpen          Boolean  @default(true) // New field: true = showing, false = hired/closed
+  createdAt       DateTime @default(now())
+  recruiterId     String? // ID of the recruiter (User with RECRUITER role)
+  recruiter       User?    @relation("JobRecruiter", fields: [recruiterId], references: [id])
+  screeningPrompt String?  @db.Text // The instructions (e.g., "Upload a 1 min video...")
+  screeningType   String? // e.g., "VIDEO_LINK", "TEXT", "PORTFOLIO"
 
   applications Application[] // Add this relation
 }
 
 model Application {
-  id        String   @id @default(cuid())
-  jobId     String
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  status    String   @default("PENDING") // PENDING, HIRED, REJECTED
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  jobId          String
+  job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  status         String   @default("PENDING") // PENDING, HIRED, REJECTED
+  submissionLink String?  @db.Text // Link or text submitted by the applicant
+  aiMatchScore   Float? // Gemini's matching score (0.0 to 100.0)
+  createdAt      DateTime @default(now())
 
   @@unique([jobId, userId]) // User can only apply once to a job
 }
