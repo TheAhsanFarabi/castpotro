@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   Briefcase,
   Plus,
@@ -19,16 +21,51 @@ import JobSearch from "./JobSearch"; // Import the new component
 export default async function AdminJobsPage(props: {
   searchParams?: Promise<{ q?: string }>;
 }) {
+  // 1. Get the userId from cookies
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+
+  if (!userId) redirect("/login");
+  // 2. Fetch the user to check role
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true },
+  });
+
+  if (!currentUser) redirect("/login");
   const searchParams = await props.searchParams;
   const query = searchParams?.q || "";
 
+  const isRecruiter = currentUser.role === "RECRUITER"; // Example role check for conditional UI
+
   // 1. Fetch filtered jobs
+  // const allJobs = await prisma.job.findMany({
+  //   where: {
+  //     OR: [
+  //       { role: { contains: query } }, // Remove mode: 'insensitive' for MySQL
+  //       { company: { contains: query } },
+  //     ],
+  //   },
+  //   orderBy: { createdAt: "desc" },
+  //   include: {
+  //     _count: {
+  //       select: { applications: true },
+  //     },
+  //   },
+  // });
   const allJobs = await prisma.job.findMany({
     where: {
-      OR: [
-        { role: { contains: query } }, // Remove mode: 'insensitive' for MySQL
-        { company: { contains: query } },
-      ],
+      // Filter by recruiterId if the user is a Recruiter
+      ...(isRecruiter ? { recruiterId: currentUser.id } : {}),
+
+      AND: query
+        ? {
+            OR: [
+              { role: { contains: query } },
+              { company: { contains: query } },
+            ],
+          }
+        : {},
     },
     orderBy: { createdAt: "desc" },
     include: {

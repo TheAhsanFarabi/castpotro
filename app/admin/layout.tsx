@@ -28,8 +28,16 @@ export default async function AdminLayout({
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   // 🔒 SECURITY CHECK: Only allow Admin roles
-  if (!user || user.role === "USER") {
-    redirect("/dashboard"); // Kick normal users back to student dashboard
+  // if (!user || user.role === "USER") {
+  //   redirect("/dashboard"); // Kick normal users back to student dashboard
+  // }
+  if (
+    !user ||
+    (user.role !== "SUPER_ADMIN" &&
+      user.role !== "INSTRUCTOR" &&
+      user.role !== "RECRUITER")
+  ) {
+    redirect("/dashboard"); // Kick normal users or unauthorized roles back
   }
 
   // Define Menu Items based on Role
@@ -68,7 +76,7 @@ export default async function AdminLayout({
       label: "Jobs",
       href: "/admin/jobs",
       icon: Briefcase,
-      roles: ["SUPER_ADMIN", "PARTNER_MANAGER"],
+      roles: ["SUPER_ADMIN", "PARTNER_MANAGER", "RECRUITER"],
     },
     {
       label: "Settings",

@@ -211,37 +211,6 @@ export async function deleteQuest(id: string) {
 
 // --- SUBMISSION VERIFICATION ---
 
-// export async function reviewSubmission(
-//   submissionId: string,
-//   status: "APPROVED" | "REJECTED",
-//   feedback: string,
-// ) {
-//   const submission = await prisma.questSubmission.findUnique({
-//     where: { id: submissionId },
-//     include: { quest: true },
-//   });
-
-//   if (!submission) return { success: false };
-
-//   await prisma.$transaction(async (tx) => {
-//     // 1. Update Submission Status
-//     await tx.questSubmission.update({
-//       where: { id: submissionId },
-//       data: { status, feedback },
-//     });
-
-//     // 2. If Approved, Award XP to User
-//     if (status === "APPROVED" && submission.status !== "APPROVED") {
-//       await tx.user.update({
-//         where: { id: submission.userId },
-//         data: { xp: { increment: submission.quest.xp } },
-//       });
-//     }
-//   });
-
-//   revalidatePath(`/admin/quests/${submission.questId}`);
-//   return { success: true };
-// }
 export async function reviewSubmission(
   submissionId: string,
   status: "APPROVED" | "REJECTED",
@@ -339,6 +308,15 @@ export async function finishEvent(eventId: string) {
 // --- JOB MANAGEMENT ---
 
 export async function createJob(formData: FormData) {
+  // for job recruitier,
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+
+  if (!userId) throw new Error("Unauthorized");
+
+  // Get current user to check role
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
   const role = formData.get("role") as string;
   const company = formData.get("company") as string;
   const location = formData.get("location") as string;
@@ -365,6 +343,7 @@ export async function createJob(formData: FormData) {
       requiredCourse,
       isPromoted,
       isOpen: true, // Default to open
+      recruiterId: user?.role === "RECRUITER" ? userId : null, // Link recruiter if applicable
     },
   });
 
