@@ -637,8 +637,12 @@ export default function JobApplicantsClient({ job }: { job: any }) {
               {/* Action Buttons (Only show if not in interview form mode) */}
               {!showInterviewForm && (
                 <div className="mt-8 pt-6 border-t border-slate-100">
-                  {selectedApp.status === "PENDING" ? (
-                    <div className="grid grid-cols-3 gap-3">
+                  {/* NEW LOGIC: Show buttons if PENDING or INTERVIEW_SCHEDULED */}
+                  {selectedApp.status === "PENDING" ||
+                  selectedApp.status === "INTERVIEW_SCHEDULED" ? (
+                    <div
+                      className={`grid gap-3 ${selectedApp.status === "PENDING" ? "grid-cols-3" : "grid-cols-2"}`}
+                    >
                       <button
                         onClick={() => handleAction(selectedApp.id, "reject")}
                         disabled={isPending}
@@ -646,13 +650,18 @@ export default function JobApplicantsClient({ job }: { job: any }) {
                       >
                         Reject
                       </button>
-                      <button
-                        onClick={() => setShowInterviewForm(true)}
-                        disabled={isPending}
-                        className="py-3 rounded-xl font-bold text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                        <Calendar size={16} /> Interview
-                      </button>
+
+                      {/* Only show the Interview button if they are still PENDING */}
+                      {selectedApp.status === "PENDING" && (
+                        <button
+                          onClick={() => setShowInterviewForm(true)}
+                          disabled={isPending}
+                          className="py-3 rounded-xl font-bold text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          <Calendar size={16} /> Interview
+                        </button>
+                      )}
+
                       <button
                         onClick={() => handleAction(selectedApp.id, "hire")}
                         disabled={isPending}
@@ -667,9 +676,7 @@ export default function JobApplicantsClient({ job }: { job: any }) {
                         className={`inline-block px-4 py-2 rounded-lg font-bold text-sm ${
                           selectedApp.status === "HIRED"
                             ? "bg-emerald-100 text-emerald-700"
-                            : selectedApp.status === "INTERVIEW_SCHEDULED"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-red-100 text-red-700"
+                            : "bg-red-100 text-red-700"
                         }`}
                       >
                         Current Status: {selectedApp.status.replace("_", " ")}
