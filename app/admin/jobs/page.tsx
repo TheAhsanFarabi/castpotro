@@ -255,7 +255,12 @@ export default async function AdminJobsPage(props: {
 
                 <div className="flex items-center gap-2">
                   {/* REPOST JOB (Duplicate as new) */}
-                  <form action={repostJob.bind(null, job.id)}>
+                  <form
+                    action={async (formData) => {
+                      "use server";
+                      await repostJob(job.id);
+                    }}
+                  >
                     <button
                       type="submit"
                       className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition"

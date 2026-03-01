@@ -1,10 +1,10 @@
-import time
 import random
+import time
 import string
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -24,44 +24,55 @@ driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), opti
 driver.maximize_window()
 
 try:
-    print("\n🚀 TEST STARTED: Specific Course Selection ('Intro to LLMs')\n")
+    print("\n🚀 TEST STARTED: Registration and Course Flow\n")
 
     # 1. REGISTER
     print("1️⃣  Navigating to Register...")
-    driver.get("http://localhost:3000/register")
+    driver.get("https://castpotro.com/register")
+    # Default wait is 10 seconds
     wait = WebDriverWait(driver, 10)
 
     TEST_EMAIL = generate_random_email()
     print(f"   ↳ Creating User: {TEST_EMAIL}")
 
+    # Fill Basic Info
     wait.until(EC.visibility_of_element_located((By.NAME, "name"))).send_keys("AI Tester")
     driver.find_element(By.NAME, "email").send_keys(TEST_EMAIL)
     driver.find_element(By.NAME, "password").send_keys("password123")
-    driver.find_element(By.NAME, "age").send_keys("25")
     
-    # Click Register
-    try:
-        driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-    except:
-        driver.find_element(By.CSS_SELECTOR, ".btn-primary").click()
+    # Fill Date of Birth (Replaces 'age')
+    driver.find_element(By.NAME, "dob").send_keys("2000-01-01")
 
-    # 2. DASHBOARD
+    # Select Country
+    print("   ↳ Selecting Country...")
+    country_dropdown = driver.find_element(By.NAME, "country")
+    select_country = Select(country_dropdown)
+    select_country.select_by_visible_text("🇧🇩 Bangladesh")
+
+    # Fill University (Becomes enabled after country selection)
+    print("   ↳ Searching for University...")
+    uni_input = wait.until(EC.element_to_be_clickable((By.NAME, "university")))
+    uni_input.send_keys("University of Dhaka")
+    
+    # Click "Start Learning" button
+    driver.find_element(By.XPATH, "//button[contains(., 'Start Learning')]").click()
+
+    # 2. DASHBOARD REDIRECT
     print("2️⃣  Waiting for Dashboard...")
-    wait.until(EC.url_contains("/dashboard"))
-    time.sleep(2) # Wait for animations to settle
+    # FIXED: Re-initialize WebDriverWait with 15s to handle the redirect delay
+    WebDriverWait(driver, 15).until(EC.url_contains("/dashboard"))
+    time.sleep(2) 
 
     # 3. SELECT SPECIFIC COURSE
-    target_course = "Intro to Large Language Models"
+    target_course = "Prompt Engineering Essentials"
     print(f"3️⃣  Searching for course: '{target_course}'...")
 
-    # 👇 UPDATED XPATH: Finds the card containing the specific Title H3
     course_card = wait.until(EC.element_to_be_clickable(
         (By.XPATH, f"//div[contains(@class, 'group') and .//h3[contains(text(), '{target_course}')]]")
     ))
     
-    # Scroll into view just in case it's off-screen
     driver.execute_script("arguments[0].scrollIntoView();", course_card)
-    time.sleep(1) # Small pause after scroll
+    time.sleep(1) 
     course_card.click()
     print(f"   ↳ Found & Clicked '{target_course}'")
 
@@ -72,12 +83,12 @@ try:
     ))
     unlock_btn.click()
 
-    # 5. WAIT FOR REDIRECT
+    # 5. WAIT FOR COURSE VIEW
     print("5️⃣  Waiting for Course View...")
     wait.until(EC.url_contains("?course="))
     time.sleep(2) 
 
-    # 6. CLICK LESSON (First active lesson)
+    # 6. START LESSON
     print("6️⃣  Starting First Lesson...")
     lesson_link = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//a[contains(@href, '/dashboard/learn')]")
@@ -87,14 +98,14 @@ try:
     # 7. INTERACTIVE LESSON FLOW
     print("7️⃣  Validating Lesson Page...")
     
-    # A. Check Step 1 (Theory)
+    # Step 1: Theory
     print("   ↳ [Step 1] Reading Theory...")
     watch_video_btn = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//button[contains(., 'Watch Video')]")
     ))
     watch_video_btn.click()
 
-    # B. Check Step 2 (Video)
+    # Step 2: Video
     print("   ↳ [Step 2] Video Loaded. Starting Quiz...")
     start_quiz_btn = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//button[contains(., 'Start Quiz')]")
@@ -102,20 +113,20 @@ try:
     time.sleep(1)
     start_quiz_btn.click()
 
-    # C. Check Step 3 (Quiz)
+    # Step 3: Quiz
     print("   ↳ [Step 3] Taking Quiz...")
-    options = wait.until(EC.presence_of_all_elements_located(
+    quiz_options = wait.until(EC.presence_of_all_elements_located(
         (By.CSS_SELECTOR, "button.text-left")
     ))
-    if options:
-        options[0].click() # Select first option
+    if quiz_options:
+        quiz_options[0].click() 
     
     submit_btn = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//button[contains(., 'Submit & Get Feedback')]")
     ))
     submit_btn.click()
 
-    # D. Check Step 4 (Completion)
+    # Step 4: Completion
     print("   ↳ [Step 4] Completing Lesson...")
     complete_lesson_btn = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//button[contains(., 'Complete Lesson')]")

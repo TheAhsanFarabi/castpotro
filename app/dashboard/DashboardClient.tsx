@@ -463,21 +463,36 @@ export default function DashboardClient({
       <div className="hidden xl:flex flex-col w-[240px] 2xl:w-[300px] bg-white/50 backdrop-blur-md p-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar gap-6 shrink-0 border-l-2 border-slate-200/60">
         <StreakWidget streak={streakData.streak} weekActivity={streakData.weekActivity} coins={coins} />
 
-        <div className="border-2 border-slate-200 rounded-2xl p-5 bg-white/90 shadow-sm">
-          <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2"><Trophy size={20} className="text-yellow-500" /> Weekly Ranking</h3>
-          <p className="text-slate-500 text-xs mb-4 font-medium">You're in the <span className="text-yellow-500 font-bold">Gold League</span>!</p>
-          <div className="flex items-center gap-3 p-2 bg-yellow-50 rounded-xl border border-yellow-100 mb-3">
-            <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center font-bold text-yellow-700 text-sm">1</div>
-            <div className="flex-1 font-bold text-slate-700 text-sm">Sarah J.</div>
-            <div className="font-bold text-slate-400 text-xs">2400 XP</div>
-          </div>
-          <div className="flex items-center gap-3 p-2 bg-white rounded-xl border-2 border-sky-100 shadow-sm relative overflow-hidden">
-            <div className="w-8 h-8 rounded-full bg-[#0ea5e9] flex items-center justify-center font-bold text-white z-10 text-sm">4</div>
-            <div className="flex-1 font-bold text-slate-700 z-10 text-sm">You</div>
-            <div className="font-bold text-[#0ea5e9] text-xs z-10">1250 XP</div>
-            <div className="absolute inset-0 bg-sky-50 opacity-50"></div>
-          </div>
-        </div>
+        {/* NEW: Quote of the Day Widget */}
+  <div className="border-2 border-slate-200 rounded-3xl p-6 bg-white/90 shadow-sm relative overflow-hidden group">
+    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#0ea5e9] to-violet-500"></div>
+    
+    <div className="flex items-center gap-2 mb-4">
+      <div className="p-1.5 bg-sky-100 text-[#0ea5e9] rounded-lg">
+        <Sparkles size={18} fill="currentColor" />
+      </div>
+      <h3 className="font-black text-slate-700 text-xs uppercase tracking-widest">
+        Daily Spark
+      </h3>
+    </div>
+
+    <blockquote className="relative">
+      <span className="text-4xl text-slate-200 font-serif absolute -top-4 -left-2 select-none">“</span>
+      <p className="text-slate-600 font-bold text-sm leading-relaxed relative z-10 italic">
+        {/* You could optionally randomize this list based on the day of the week */}
+        The art of communication is the language of leadership.
+      </p>
+      <footer className="mt-3 text-[10px] font-black text-[#0ea5e9] uppercase tracking-wider flex items-center gap-2">
+        <div className="w-4 h-[2px] bg-sky-200"></div>
+        James Humes
+      </footer>
+    </blockquote>
+
+    {/* Subtle decorative element */}
+    <div className="absolute -right-2 -bottom-2 opacity-5 text-slate-900 transition-transform group-hover:scale-110 duration-700">
+      <Hexagon size={80} />
+    </div>
+  </div>
 
         {/* Ads Widget */}
         <Link href="/dashboard/plus">
